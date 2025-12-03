@@ -15,7 +15,11 @@ def get_bingo_game(bingo_game_id: int):
     pass
 
 def get_all_bingo_games():
-    pass
+    with duckdb.connect("app.db") as con:
+        res = con.table("bingo").fetchall()
+        print(res)
+
+get_all_bingo_games()
 
 '''
 Database calls for the `user_bingo` table
@@ -60,8 +64,9 @@ def setup_database(dbname = "app.db"):
     try:
         logger.info("Attempting connection and table check")
         con = duckdb.connect(database=dbname, read_only = False)
+        con.sql('CREATE SEQUENCE IF NOT EXISTS user_increment START 1')
         con.sql('''CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY DEFAULT nextval('user_increment'),
                 username VARCHAR,
                 prof_img_url VARCHAR,
                 is_admin BOOLEAN,
@@ -70,8 +75,9 @@ def setup_database(dbname = "app.db"):
                 created_at DATETIME 
             )'''
         )
+        con.sql('CREATE SEQUENCE IF NOT EXISTS bingo_increment START 1')
         con.sql('''CREATE TABLE IF NOT EXISTS bingo (
-                id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY DEFAULT nextval('bingo_increment'),
                 completed BOOLEAN,
                 victor INTEGER REFERENCES users(id),
                 created_at DATETIME
