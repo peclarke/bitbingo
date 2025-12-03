@@ -27,3 +27,14 @@ logger.addHandler(file_handler)
 
 # add ch to logger
 logger.addHandler(ch)
+
+def log_exceptions(func):
+    '''
+    Decorator function for handling exceptions
+    '''
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.exception(f"Exception in {func.__name__}: {e}")
+    return wrapper
