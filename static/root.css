@@ -1,0 +1,26 @@
+:root {
+    /* ---- ⚫️ Colors ⚪️ ---- */
+    /* Base Tokens */
+    --sys-color-white: #FFFFFF;
+    --sys-color-black: #000000;
+    --sys-color-grey: #A5A5A5;
+    --sys-color-darkgrey: #B6B7B8;
+
+    /* Theme Tokens */
+    --primary: var(--sys-color-white);
+    --secondary: var(--sys-color-black);
+    --tertiary: var(--sys-color-grey);
+
+    /* Component Tokens */
+    --disabled: var(--sys-color-darkgrey);
+}
+
+.menu>a {
+    text-decoration: none;
+}
+
+.menu-toggled {
+    background: var(--secondary);
+    color: var(--primary);
+    outline: none;
+}

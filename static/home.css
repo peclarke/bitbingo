@@ -2,14 +2,40 @@
     padding: 1em;
 }
 
+.separator {
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+
 #bingo-table {
+    /* margin-top: 1vh; */
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    column-gap: 2px;
+    row-gap: 2px;
 }
 
 #bingo-table>div {
-    /* background-color: red; */
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid black;
-    /* border: 0.05px solid black; */
+    padding: 1em;
+    cursor: pointer;
+}
+
+#bingo-table>div:hover {
+    background: var(--secondary);
+    color: var(--primary);
+    outline: none;
+}
+
+#bingo-action {
+    margin-top: 1vh;
+}
+
+#bitbingo-text {
+    padding: 1em;
 }

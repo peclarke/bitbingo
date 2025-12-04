@@ -5,12 +5,16 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://unpkg.com/@sakun/system.css" />
     <link href="{{ url_for('static', path='home.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='root.css') }}" rel="stylesheet">
 </head>
 <body>
 
-    <ul role="menu-bar">
+    <ul role="menu-bar" class="menu">
+        <a role="menu-item" tabindex="0" href="/" class="menu-toggled">
+            Home
+        </a>
         <li role="menu-item" tabindex="0" aria-haspopup="true">
-            File
+            Profile
             <ul role="menu">
             <li role="menu-item"><a href="#menu">Action</a></li>
             <li role="menu-item"><a href="#menu">Another Action</a></li>
@@ -19,7 +23,7 @@
             </ul>
         </li>
         <li role="menu-item" tabindex="0" aria-haspopup="true">
-            Edit
+            Stats
             <ul role="menu">
             <li role="menu-item"><a href="#menu">Action</a></li>
             <li role="menu-item"><a href="#menu">Another Action</a></li>
@@ -27,73 +31,73 @@
             <li role="menu-item"><a href="https://sakun.co">sakun's projects</a></li>
             </ul>
         </li>
-        <li role="menu-item" tabindex="0" aria-haspopup="true">
-            View
-            <ul role="menu">
-            <li role="menu-item"><a href="#menu">Action</a></li>
-            <li role="menu-item"><a href="#menu">Another Action</a></li>
-            <li role="menu-item"><a href="#menu">Something else here</a></li>
-            </ul>
-        </li>
-        <li role="menu-item" tabindex="0" aria-haspopup="true">
-            Special
-            <ul role="menu">
-            <li role="menu-item"><a href="#menu">You</a></li>
-            <li role="menu-item"><a href="#menu">Get the</a></li>
-            <li role="menu-item"><a href="#menu">Idea</a></li>
-            </ul>
-        </li>
+        <a role="menu-item" tabindex="0" href="/about">
+            About
+        </a>
     </ul>
 
     <div class="window" id="bingo-window" style="width:30rem">
-        <!-- <h1>BitBingo</h1>
-        <sub>Weekly bingo for BitProxima</sub> -->
+        <div class="title-bar">
+            <button aria-label="Close" class="close"></button>
+            <h1 class="title">BitBingo</h1>
+            <button aria-label="Resize" disabled class="hidden"></button>
+        </div>
+        <sub>Bingo for the week of xx/yy. Will you be the winner?</sub>
+
+        <div class="separator"></div>
 
         <div id="bingo-table">
-            <div>1</div>
-            <div>2</div>
-            <div>3</div>
-            <div>4</div>
-            <div>5</div>
-            <div>6</div>
-            <div>7</div>
-            <div>8</div>
-            <div>9</div>
+            {% for prompt in prompts %}
+                <div onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
+            {% endfor %}
+        </div>
+
+        <div id="bingo-action">
+            <button class="btn" disabled id="submit-bingo-selection">Submit</button>
         </div>
     </div>
 
-    <!-- <div class="window" style="width:30rem;"> -->
-        <!-- asd -->
-        <!-- <div class="title-bar"> 
-            <button aria-label="Close" class="close"></button>
-            <h1 class="title">System.css</h1>
-            <button aria-label="Resize" class="resize"></button>
-        </div>
-        <div class="separator"></div>
-        
-        <div class="window-pane">
-            Hello world!
-        </div> -->
-    <!-- </div> -->
+    <div class="window" style="width:30rem" id="bitbingo-text">
+        Welcome to BitBingo, the one and only BitProxima weekly Bingo game. Our prompts have been collated over the course of
+        a few months, and more will be added as time passes.
+        <br><br>
+        To play, select prompts you've achieved for the week and above and submit them. You can do it all at once or one at a time.
+        Once a team member reaches BINGO! (3 across any direction) they will be marked the victor. The game resets each week, have fun! 
+    </div>
 
-    <!-- <div class="window" style="width:30rem;">
-        <div class="title-bar"> 
-            <button aria-label="Close" class="close"></button>
-            <h1 class="title">Search</h1>
-            <button aria-label="Resize" disabled class="hidden"></button>
-        </div>
-        <div class="separator"></div>
-        
-        <div class="modeless-dialog">
-            <section class="field-row" style="justify-content: flex-start">
-                <label for="text_find" class="modeless-text">Find:</label>
-                <input id="text_find" type="text" style="width:100%;" placeholder="">
-            </section>
-            <section class="field-row" style="justify-content: flex-end">
-                <button class="btn">Cancel</button>
-                <button class="btn" style="width:95px;">Find</button>
-            </section>
-        </div>
-        </div> -->
+    
 </body>
+<script>
+    var selectedIndexes = []
+
+    function enableSubmit() {
+        document.getElementById("submit-bingo-selection").removeAttribute("disabled")
+    }
+    function disableSubmit() {
+        document.getElementById("submit-bingo-selection").setAttribute("disabled", "true")
+    }
+
+    function onCardClick(promptIndex) {
+        try {
+            idx = parseInt(promptIndex)
+            pos = selectedIndexes.indexOf(idx)
+            if (pos >= 0) {
+                selectedIndexes.splice(pos, 1)
+            } else {
+                selectedIndexes.push(idx)
+            }
+            // enable or disable the submit button depending on the number of selected
+            if (selectedIndexes.length > 0) {
+                enableSubmit()
+            } else {
+                disableSubmit()
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    function onSubmit() {}
+
+</script>
 </html>

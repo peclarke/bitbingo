@@ -4,4 +4,4 @@ INSERT INTO users (username, prof_img_url, is_admin) VALUES (
     true
 );
 
--- INSERT INTO bingo DEFAULT VALUES;
+INSERT INTO bingo DEFAULT VALUES;

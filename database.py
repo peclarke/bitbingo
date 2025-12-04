@@ -26,6 +26,36 @@ def modify_mark_victor(user_id: int, conn = None):
         logger.error(f"User with id [{user_id}] was not found and could not be marked the winner")
 
 @log_exceptions
+def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8):
+    '''
+    Generates prompts for the bingo game and inserts it into the database
+
+    Args:
+        - bingo_game_id: int - the integer id of the bingo game
+        - con = None - database connection
+        - number: int = 8 - the number of prompts to generate. 
+            -> valid numbers are for all x>2, x^2-1
+            -> this allows for a free square in the middle
+    '''
+    if (con is None):
+        con = duckdb.connect('app.db')
+
+    bingoCnt, = con.sql(f"SELECT COUNT(*) FROM bingo WHERE id = {bingo_game_id}").fetchone()
+    if bingoCnt == 0:
+        logger.error(f"Bingo game with id [{bingo_game_id}] does not exist")
+        return
+    
+    # generate prompts
+    results = con.sql(f"SELECT * FROM read_json('static/prompts.json') USING SAMPLE {number}").fetchall()
+    prompts = list(map(lambda prompt: prompt[0], results))
+    # insert free prompt
+    prompts.insert(4, "FREE")
+
+    # insert prompts into database
+    for i, prompt in enumerate(prompts):
+        con.sql(f"INSERT INTO prompts (bingo_game, idx, prompt) VALUES ({bingo_game_id}, {i},'{prompt}')")
+
+@log_exceptions
 def create_new_bingo_game(winner = None):
     '''
     This marks the current game as COMPLETE and creates a new one
@@ -41,7 +71,12 @@ def create_new_bingo_game(winner = None):
         con.sql('UPDATE bingo SET completed = true, finished_at = now() WHERE completed = false')
         con.sql('INSERT INTO bingo DEFAULT VALUES;')
 
+        bingoId, = con.sql('SELECT id FROM bingo where completed = false').fetchone()
+        generate_and_fill_prompts(bingoId, con)
+
         logger.info("Created a new bingo game")
+
+create_new_bingo_game(winner = 1)
 
 @log_exceptions
 def get_bingo_game(bingo_game_id: int = None):
@@ -138,7 +173,26 @@ def create_new_user():
 '''
 Database calls for the `prompts` table
 '''
+@log_exceptions
+def get_all_current_prompts():
+    '''
+    Get all prompts for the current bingo game
+
+    Returns:
+        - [(idx, prompt)] - list of prompts and their indexes tupled together
+    '''
+    with duckdb.connect("app.db") as con:
+        currentGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
+        if currentGameId is None:
+            logger.info("No game is in session")
+            return
+        
+        return con.sql(f"SELECT idx, prompt FROM prompts WHERE bingo_game = {currentGameId}").fetchall()
+
 def get_all_prompts():
+    '''
+    Get all the prompts that the application can use
+    '''
     pass
 
 def create_prompt(prompt: str):
@@ -175,14 +229,14 @@ def setup_database(dbname = "app.db"):
             )'''
         )
         con.sql('''CREATE TABLE IF NOT EXISTS user_bingo_progress (
-                user_id INTEGER REFERENCES users(id),
-                bingo_id INTEGER REFERENCES bingo(id),
+                user_id INTEGER,
+                bingo_id INTEGER,
                 completed_index INTEGER NOT NULL,
                 PRIMARY KEY (user_id, bingo_id, completed_index)
             )'''
         )
         con.sql('''CREATE TABLE IF NOT EXISTS prompts (
-                bingo_game INTEGER REFERENCES bingo(id),
+                bingo_game INTEGER,
                 idx INTEGER NOT NULL, -- where on the board the prompt is [0,16]
                 prompt VARCHAR NOT NULL, -- the text that is in the square
                 created_at DATETIME DEFAULT now(),
