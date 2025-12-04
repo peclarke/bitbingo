@@ -1,0 +1,15 @@
+#bingo-window {
+    padding: 1em;
+}
+
+#bingo-table {
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+#bingo-table>div {
+    /* background-color: red; */
+    text-align: center;
+    border: 1px solid black;
+    /* border: 0.05px solid black; */
+}
