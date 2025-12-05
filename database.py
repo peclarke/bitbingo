@@ -76,7 +76,7 @@ def create_new_bingo_game(winner = None):
 
         logger.info("Created a new bingo game")
 
-create_new_bingo_game(winner = 1)
+# create_new_bingo_game(winner = 1)
 
 @log_exceptions
 def get_bingo_game(bingo_game_id: int = None):
@@ -155,6 +155,23 @@ def get_completed_bingo_prompts_for_user(bingo_game_id: int, user_id: int):
         else:
             logger.error(f"Bingo game {bingo_game_id} was not found associated for user {user_id}")
 
+@log_exceptions
+def get_count_of_completed_prompts(bingo_game_id: int = None):
+    '''
+    Gets the number of prompts that have been completed for the specified game or current game
+
+    Args:
+        bingo_game_id: int = None - either the game id or nothing, which defaults to current
+    '''
+    with duckdb.connect('app.db') as con:
+        if (bingo_game_id is None):
+            promptCnt, = con.sql(f"SELECT COUNT(*) FROM user_bingo_progress WHERE bingo_id IN (SELECT id FROM bingo WHERE completed = false)").fetchone()
+        else:
+            promptCnt, = con.sql(f"SELECT COUNT(*) FROM user_bingo_progress WHERE bingo_id = {bingo_game_id}").fetchone()
+        return promptCnt
+
+get_count_of_completed_prompts()
+
 def delete_bingo_prompt_for_user(bingo_game_id: int, user_id: int, prompt_index: int):
     pass
 
@@ -216,7 +233,7 @@ def setup_database(dbname = "app.db"):
                 is_admin BOOLEAN DEFAULT false,
                 points INTEGER DEFAULT 0,
                 number_games_won INTEGER DEFAULT 0,
-                created_at DATETIME DEFAULT now()
+                created_at DATETIME DEFAULT current_localtimestamp()
             )'''
         )
         con.sql('CREATE SEQUENCE IF NOT EXISTS bingo_increment START 1')
@@ -224,7 +241,7 @@ def setup_database(dbname = "app.db"):
                 id INTEGER PRIMARY KEY DEFAULT nextval('bingo_increment'),
                 completed BOOLEAN DEFAULT false,
                 victor INTEGER NULL REFERENCES users(id),
-                created_at DATETIME DEFAULT now(),
+                created_at DATETIME DEFAULT current_localtimestamp(),
                 finished_at DATETIME NULL DEFAULT NULL
             )'''
         )
@@ -239,7 +256,7 @@ def setup_database(dbname = "app.db"):
                 bingo_game INTEGER,
                 idx INTEGER NOT NULL, -- where on the board the prompt is [0,16]
                 prompt VARCHAR NOT NULL, -- the text that is in the square
-                created_at DATETIME DEFAULT now(),
+                created_at DATETIME DEFAULT current_localtimestamp(),
                 PRIMARY KEY (bingo_game, idx)
             )'''
         )

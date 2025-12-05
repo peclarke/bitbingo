@@ -36,39 +36,99 @@
         </a>
     </ul>
 
-    <div class="window" id="bingo-window" style="width:30rem">
-        <div class="title-bar">
-            <button aria-label="Close" class="close"></button>
-            <h1 class="title">BitBingo</h1>
-            <button aria-label="Resize" disabled class="hidden"></button>
+    <section id="bingo-core-game">
+        <div class="window" id="bingo-window" style="width:30rem">
+            <div class="title-bar">
+                <button aria-label="Close" class="close" onclick="clickButton()"></button>
+                <h1 class="title">BitBingo</h1>
+                <button aria-label="Resize" disabled class="hidden"></button>
+            </div>
+            <sub>Bingo for the week of {{ week }}. Will you be the winner?</sub>
+
+            <div class="separator"></div>
+
+            <div id="bingo-table">
+                {% for prompt in prompts %}
+                    <div onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
+                {% endfor %}
+            </div>
+
+            <div id="bingo-action">
+                <button class="btn" disabled id="submit-bingo-selection">Submit</button>
+            </div>
         </div>
-        <sub>Bingo for the week of xx/yy. Will you be the winner?</sub>
-
-        <div class="separator"></div>
-
-        <div id="bingo-table">
-            {% for prompt in prompts %}
-                <div onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
-            {% endfor %}
+        <div class="window" id="bingo-window" style="width:30rem">
+            Welcome to BitBingo, the one and only BitProxima weekly Bingo game. Our prompts have been collated over the course of
+            a few months, and more will be added as time passes.
+            <br><br>
+            To play, select prompts you've achieved for the week and above and submit them. You can do it all at once or one at a time.
+            Once a team member reaches BINGO! (3 across any direction) they will be marked the victor. The game resets each week, have fun! 
+            <br><br>
+            <div class="separator"></div>
+            <br>
+            <div class="title-bar">
+                <h1 class="title">Current Game Stats</h1>
+            </div>
+            <p>Game duration: <strong id="duration">72 hours, 32 minutes, 23 seconds</strong></p>
+            <p>Number of Prompts Completed (You): <strong>0</strong></p>
+            <p>Number of Prompts Completed (Team): <strong>{{teamComplete}}</strong></p>
+            <p>Winner: <strong>{{victor}}</strong></p>
+            <p hidden="true" id="clicker">Number of Clicks: <strong>0</strong></p>
+            <br>
         </div>
-
-        <div id="bingo-action">
-            <button class="btn" disabled id="submit-bingo-selection">Submit</button>
-        </div>
-    </div>
-
-    <div class="window" style="width:30rem" id="bitbingo-text">
-        Welcome to BitBingo, the one and only BitProxima weekly Bingo game. Our prompts have been collated over the course of
-        a few months, and more will be added as time passes.
-        <br><br>
-        To play, select prompts you've achieved for the week and above and submit them. You can do it all at once or one at a time.
-        Once a team member reaches BINGO! (3 across any direction) they will be marked the victor. The game resets each week, have fun! 
-    </div>
+    </section>
 
     
 </body>
 <script>
     var selectedIndexes = []
+    var numberOfClicks = 0
+    const startingTime = new Date("{{started}}");
+
+    function init() {
+        handleTimeDifference()
+
+        const numClicks = localStorage.getItem("click-game-"+"{{bingoId}}");
+        if (numClicks !== null) {
+            numberOfClicks = parseInt(numClicks);
+        }
+    }
+
+    function isClickerHidden() {
+        if (numberOfClicks > 0) {
+            document.getElementById("clicker").hidden = false
+        } else {
+            document.getElementById("clicker").hidden = true
+        }
+    }
+
+    function handleTimeDifference() {
+        const currentTime = new Date();
+        const msDiff = Math.abs(currentTime - startingTime);
+
+        const diffSeconds = Math.floor(msDiff / 1000);
+        const seconds = diffSeconds % 60;
+
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const minutes = diffMinutes % 60;
+
+        const diffHours = Math.floor(diffMinutes / 60);
+        const hours = diffHours;  // total hours
+
+        const result = `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+        document.getElementById('duration').innerText = result
+
+        // do again in 1 second time
+        setTimeout(handleTimeDifference, 1000)
+    }
+
+    function clickButton() {
+        numberOfClicks = numberOfClicks + 1;
+        document.getElementById("clicker").lastChild.innerText = numberOfClicks
+        localStorage.setItem("click-game-"+"{{bingoId}}", numberOfClicks)
+
+        isClickerHidden();
+    }
 
     function enableSubmit() {
         document.getElementById("submit-bingo-selection").removeAttribute("disabled")
@@ -98,6 +158,8 @@
     }
 
     function onSubmit() {}
+
+    init()
 
 </script>
 </html>

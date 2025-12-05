@@ -1,3 +1,10 @@
+#bingo-core-game {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+    grid-template-rows: auto auto;
+    max-width: 69rem;
+}
+
 #bingo-window {
     padding: 1em;
 }
