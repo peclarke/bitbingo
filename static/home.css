@@ -9,11 +9,6 @@
     padding: 1em;
 }
 
-.separator {
-    margin-top: 1vh;
-    margin-bottom: 1vh;
-}
-
 #bingo-table {
     /* margin-top: 1vh; */
     display: grid;
@@ -34,9 +29,10 @@
 }
 
 #bingo-table>div:hover {
-    background: var(--secondary);
+    /* background: var(--secondary);
     color: var(--primary);
-    outline: none;
+    outline: none; */
+    text-decoration: underline;
 }
 
 #bingo-action {
@@ -45,4 +41,17 @@
 
 #bitbingo-text {
     padding: 1em;
+}
+
+.separator {
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+
+.checked-prompt {
+    background-image: url("./checkmark.svg");
+}
+
+.checked-prompt:hover {
+    text-decoration: underline;
 }

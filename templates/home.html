@@ -49,14 +49,22 @@
 
             <div id="bingo-table">
                 {% for prompt in prompts %}
-                    <div onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
+                    {% if prompt[0] in completedPrompts %}
+                        <div class="checked-prompt" id="prompt-{{prompt[0]}}" onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
+                    {% else %}
+                        <div id="prompt-{{prompt[0]}}" onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
+                    {% endif %}
                 {% endfor %}
             </div>
 
             <div id="bingo-action">
-                <button class="btn" disabled id="submit-bingo-selection">Submit</button>
+                <form action="/" method="post">
+                    <input style="display:none" name="selected" id="selected" type="text" value="">
+                    <button type="submit" class="btn" disabled id="submit-bingo-selection">Submit</button>
+                </form>
             </div>
         </div>
+
         <div class="window" id="bingo-window" style="width:30rem">
             Welcome to BitBingo, the one and only BitProxima weekly Bingo game. Our prompts have been collated over the course of
             a few months, and more will be added as time passes.
@@ -81,16 +89,27 @@
     
 </body>
 <script>
-    var selectedIndexes = []
+    var initial = {{completedPrompts}}
+    var selectedIndexes = {{completedPrompts}}
     var numberOfClicks = 0
     const startingTime = new Date("{{started}}");
 
     function init() {
+        isClickerHidden()
         handleTimeDifference()
 
         const numClicks = localStorage.getItem("click-game-"+"{{bingoId}}");
         if (numClicks !== null) {
             numberOfClicks = parseInt(numClicks);
+        }
+    }
+
+    function isSubmitEnabled() {
+        console.log(initial, selectedIndexes)
+        if (arraysEqual(initial, selectedIndexes)) {
+            disableSubmit()
+        } else {
+            enableSubmit()
         }
     }
 
@@ -146,18 +165,40 @@
             } else {
                 selectedIndexes.push(idx)
             }
-            // enable or disable the submit button depending on the number of selected
-            if (selectedIndexes.length > 0) {
-                enableSubmit()
+            // stylistic changes
+            if (selectedIndexes.includes(promptIndex)) {
+                document.getElementById("prompt-"+promptIndex).classList.add("checked-prompt")
             } else {
-                disableSubmit()
+                document.getElementById("prompt-"+promptIndex).classList.remove("checked-prompt")
             }
+
+            // update the input
+            document.getElementById("selected").value = selectedIndexes.toString();
+
+            isSubmitEnabled()
+
         } catch (err) {
             console.error(err)
         }
     }
 
-    function onSubmit() {}
+    function arraysEqual(a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (a.length !== b.length) return false;
+
+        // If you don't care about the order of the elements inside
+        // the array, you should sort both arrays here.
+        // Please note that calling sort on an array will modify that array.
+        // you might want to clone your array first.
+        a.sort()
+        b.sort()
+
+        for (var i = 0; i < a.length; ++i) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
 
     init()
 

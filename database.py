@@ -1,3 +1,4 @@
+from typing import List
 import duckdb
 
 from log import logger, log_exceptions
@@ -113,14 +114,14 @@ def get_all_bingo_games():
 Database calls for the `user_bingo` table
 '''
 @log_exceptions
-def add_completed_prompt_to_user(bingo_game_id: int, user_id: int, prompt_index: int):
+def add_completed_prompt_to_user(bingo_game_id: int, user_id: int, prompt_indexes: List[int]):
     '''
     When a prompt is completed in the bingo table, mark it as complete
 
     Args:
         bingo_game_id - the ID of the bingo game
         user_id - the ID of the user that completed the prompt
-        prompt_index - where the completed prompt on the table is
+        prompt_indexes - array of indexes where the completed prompt on the table is
     '''
     with duckdb.connect("app.db") as con:
         # Validate bingo and user in the db
@@ -129,7 +130,9 @@ def add_completed_prompt_to_user(bingo_game_id: int, user_id: int, prompt_index:
 
         if bingoCnt == 1 and userCnt == 1:
             # add the completed index
-            con.sql(f'INSERT INTO user_bingo_progress (user_id, bingo_id, completed_index) VALUES ({user_id}, {bingo_game_id}, {prompt_index})')
+            for index in prompt_indexes:
+                print(f'INSERT INTO user_bingo_progress (user_id, bingo_id, completed_index) VALUES ({user_id}, {bingo_game_id}, {index})')
+                con.sql(f'INSERT INTO user_bingo_progress (user_id, bingo_id, completed_index) VALUES ({user_id}, {bingo_game_id}, {index})')
 
         elif bingoCnt != 1:
             logger.error(f"Bingo game with id [{bingo_game_id}] found a count of {bingoCnt} in the db")
@@ -150,8 +153,9 @@ def get_completed_bingo_prompts_for_user(bingo_game_id: int, user_id: int):
         userCnt,  = con.sql(f"SELECT COUNT(*) FROM users WHERE id = {user_id}").fetchone()
 
         if bingoCnt == 1 and userCnt == 1:
-            results = con.sql(f"SELECT * FROM user_bingo_progress WHERE user_id = {user_id} AND bingo_id = {bingo_game_id}").fetchall()
-            return results
+            results = con.sql(f"SELECT completed_index FROM user_bingo_progress WHERE user_id = {user_id} AND bingo_id = {bingo_game_id}").fetchall()
+            indexes = list(map(lambda res: res[0], results))
+            return indexes
         else:
             logger.error(f"Bingo game {bingo_game_id} was not found associated for user {user_id}")
 
