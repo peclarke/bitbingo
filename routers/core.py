@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
-from database import add_completed_prompt_to_user, get_all_current_prompts, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts
+from database import get_all_current_prompts, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, set_completed_prompts_for_user
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -17,15 +17,18 @@ async def homepage(request: Request):
         formData = await request.form()
         selected = formData.get('selected')
         if selected is not None:
-            # convert to integer list
-            indexesStr = selected.split(",")
-            indexes = [ int(x) for x in indexesStr ]
+            if len(selected) == 0:
+                set_completed_prompts_for_user(currentGame[0], 1, [])
+                # set to new completed prompts
+                myCompletedPrompts = []
+            else:
+                # convert to integer list
+                indexesStr = selected.split(",")
+                indexes = [int(x) for x in indexesStr]
 
-            # split up ones we need to add vs. ones we need to remove
-            forRemoval = list(filter(lambda index: index in myCompletedPrompts, indexes))
-            forInsertion = list(filter(lambda index: index not in myCompletedPrompts, indexes))
-
-            add_completed_prompt_to_user(currentGame[0], 1, forInsertion)
+                set_completed_prompts_for_user(currentGame[0], 1, indexes)
+                # set to new completed prompts
+                myCompletedPrompts = indexes
 
     # get all bingo information
     prompts = get_all_current_prompts()

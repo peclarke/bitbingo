@@ -114,7 +114,7 @@ def get_all_bingo_games():
 Database calls for the `user_bingo` table
 '''
 @log_exceptions
-def add_completed_prompt_to_user(bingo_game_id: int, user_id: int, prompt_indexes: List[int]):
+def set_completed_prompts_for_user(bingo_game_id: int, user_id: int, prompt_indexes: List[int]):
     '''
     When a prompt is completed in the bingo table, mark it as complete
 
@@ -129,9 +129,10 @@ def add_completed_prompt_to_user(bingo_game_id: int, user_id: int, prompt_indexe
         userCnt,  = con.sql(f"SELECT COUNT(*) FROM users WHERE id = {user_id}").fetchone()
 
         if bingoCnt == 1 and userCnt == 1:
-            # add the completed index
+            # remove all other prompts to start
+            con.sql(f'DELETE FROM user_bingo_progress WHERE user_id = {user_id} AND bingo_id = {bingo_game_id}')
+            # add the completed indexes
             for index in prompt_indexes:
-                print(f'INSERT INTO user_bingo_progress (user_id, bingo_id, completed_index) VALUES ({user_id}, {bingo_game_id}, {index})')
                 con.sql(f'INSERT INTO user_bingo_progress (user_id, bingo_id, completed_index) VALUES ({user_id}, {bingo_game_id}, {index})')
 
         elif bingoCnt != 1:
