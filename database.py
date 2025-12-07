@@ -374,6 +374,12 @@ def setup_database(dbname = "app.db"):
                 PRIMARY KEY (user_id, bingo_id)
                 )'''
         )
+        con.sql('''CREATE TABLE IF NOT EXISTS user_game_clicks (
+                user_id INTEGER,
+                bingo_id INTEGER,
+                clicks INTEGER,
+                PRIMARY KEY (user_id, bingo_id))
+            ''')
         con.sql('''CREATE TABLE IF NOT EXISTS prompts (
                 bingo_game INTEGER,
                 idx INTEGER NOT NULL, -- where on the board the prompt is [0,16]
