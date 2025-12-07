@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BitBingo</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="https://unpkg.com/@sakun/system.css" />
+    <link href="{{ url_for('static', path='home.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='root.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='stats.css') }}" rel="stylesheet">
+</head>
+<body>
+
+    <ul role="menu-bar" class="menu">
+        <a role="menu-item" tabindex="0" href="/">
+            Home
+        </a>
+        <li role="menu-item" tabindex="0" aria-haspopup="true">
+            Profile
+            <ul role="menu">
+            <li role="menu-item"><a href="#menu">Action</a></li>
+            <li role="menu-item"><a href="#menu">Another Action</a></li>
+            <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
+            <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
+            </ul>
+        </li>
+        <a role="menu-item" tabindex="0" class="menu-toggled" href="/stats">
+            Stats
+        </a>
+        <a role="menu-item" tabindex="0" aria-haspopup="true" href="/vote">
+            Vote
+        </a>
+    </ul>
+
+    <div class="window" id="bingo-window" style="width:30rem">
+        <div class="title-bar">
+            <h1 class="title">Player Stats</h1>
+        </div>
+        This tool can help you find the stats you need about each player in the game
+        <form action="/stats" method="post">
+            <div id="search-action">
+                <select name="username">
+                    {% for user in usernames %}
+                        <option>{{user}}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn" type="submit">Search</button>
+            </div>
+        </form>
+        <div class="separator"></div>
+        <p>Number of Games Won: <strong>{{numGamesWon}}</strong></p>
+        <p>Number of Points: <strong>{{points}}</strong></p>
+        <p>Joined On: <strong>{{createdAt}}</strong></p>
+    </div>
+</body>
+</html>

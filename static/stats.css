@@ -1,0 +1,7 @@
+#search-action {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    margin-top: 10px;
+    margin-bottom: 1em;
+}

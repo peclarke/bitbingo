@@ -288,11 +288,17 @@ def check_win(user_to_check: int):
 '''
 Database calls for the `users` table
 '''
-def get_user_info(user_id: int):
-    pass
+@log_exceptions
+def get_user_info_by_username(username: str):
+    with duckdb.connect('app.db') as con:
+        return con.sql(f"SELECT * FROM users WHERE username = '{username}'").fetchone()
 
-def get_all_users():
-    pass
+@log_exceptions
+def get_all_usernames():
+    with duckdb.connect("app.db") as con:
+        res = con.sql(f"SELECT username FROM users").fetchall()
+        usernames = [name[0] for name in res]
+        return usernames
 
 def create_new_user():
     pass

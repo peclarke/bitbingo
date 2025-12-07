@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
-from database import get_all_current_prompts, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_game_winner, handle_victor, set_completed_prompts_for_user
+from database import get_all_current_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_game_winner, get_user_info_by_username, handle_victor, set_completed_prompts_for_user
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -55,6 +55,31 @@ async def homepage(request: Request):
         "winner": winner
     })
 
-@router.get("/about")
-async def about(request: Request):
-    return templates.TemplateResponse("about.html", { "request": request })
+@router.get("/vote")
+async def vote(request: Request):
+    return templates.TemplateResponse("vote.html", { "request": request })
+
+@router.get("/stats")
+@router.post("/stats")
+async def stats(request: Request):
+    usernames = get_all_usernames()
+    reqUser = usernames[0]
+
+    if (request.method == "POST"):
+        # handle selection of indexes
+        formData = await request.form()
+        selected = formData.get('username')
+        
+    # get information about requested user
+    reqInfo = get_user_info_by_username(reqUser)
+    userId, username, profImgUrl, isAdmin, points, numGamesWon, createdAt = reqInfo
+
+    return templates.TemplateResponse("stats.html", { 
+        "request": request,
+        "usernames": usernames,
+        "user": username,
+        "profImgUrl": profImgUrl,
+        "points": points,
+        "numGamesWon": numGamesWon,
+        "createdAt": createdAt.strftime("%d/%m/%Y")
+    })
