@@ -6,13 +6,29 @@ from log import logger, log_exceptions
 '''
 Database calls for the `bingo` table
 '''
+def handle_victor(user_id: int):
+    '''
+    Handles marking the victory of a game
+    '''
+    # a game can be incomplete and a winner found
+    with duckdb.connect('app.db') as con:
+        bingoGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
+        # check if there is already a winner.
+        count, = con.sql(f"SELECT COUNT(victor) FROM bingo WHERE completed = false AND victor IS NOT NULL").fetchone()
+        if (count == 0):
+            modify_mark_victor(user_id, bingoGameId, con)
+        else:
+            # gain 50 points for completing bingo, but not first
+            assign_victory_points(user_id, bingoGameId, 50)
+
 @log_exceptions
-def modify_mark_victor(user_id: int, conn = None):
+def modify_mark_victor(user_id: int, bingoGameId: int, conn = None):
     '''
     Marks the current incomplete game with the victor 
 
     Args:
         user_id: int - the winner of the current game
+        bingoGameId: int - the id of the bingo game to mark points to 
         conn: None or duckdb connection - a current connection to the db. Useful for chaining calls
     '''
     if (conn is None):
@@ -22,9 +38,38 @@ def modify_mark_victor(user_id: int, conn = None):
     if cnt > 0:
         conn.sql(f'UPDATE bingo SET victor = {user_id} WHERE completed = false')
         conn.sql(f'UPDATE users SET number_games_won = number_games_won + 1 WHERE id = {user_id}')
+        # 100 victory points for being the first to win the bingo game
+        assign_victory_points(user_id, bingoGameId, 100)
         logger.info(f"Marked {user_id} as victor for bingo game")
     else:
         logger.error(f"User with id [{user_id}] was not found and could not be marked the winner")
+
+@log_exceptions
+def assign_victory_points(user_id: int, bingo_game: int, points: int):
+    '''
+    When a game is won, assign victory points for that user
+    '''
+    with duckdb.connect("app.db") as con:
+        cnt, = con.sql(f"SELECT COUNT(*) FROM user_wins WHERE user_id = {user_id} AND bingo_id = {bingo_game}").fetchone()
+        if cnt > 0:
+            # The user has already won once before, no more points for you
+            return
+        
+        # Give them the points and mark them as won for this game
+        con.sql(f'UPDATE users SET points = points + {points} WHERE id = {user_id}')
+        con.sql(f"INSERT INTO user_wins (user_id, bingo_id) VALUES ({user_id}, {bingo_game})")
+
+@log_exceptions
+def get_game_winner():
+    '''
+    Gets the winner or None of the current game
+
+    Returns:
+        userId or None
+    '''
+    with duckdb.connect("app.db") as con:
+        victor, = con.sql("SELECT victor FROM bingo WHERE completed = false").fetchone()
+        return victor
 
 @log_exceptions
 def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8):
@@ -140,6 +185,13 @@ def set_completed_prompts_for_user(bingo_game_id: int, user_id: int, prompt_inde
         elif userCnt != 1:
             logger.error(f"User with id [{user_id}] found a count of {userCnt} in the db")
 
+        # check for winners (isWon, user)
+        isWon, userId = check_win(user_id)
+        if isWon:
+            handle_victor(userId)   
+
+        return isWon
+
 @log_exceptions
 def get_completed_bingo_prompts_for_user(bingo_game_id: int, user_id: int):
     '''
@@ -175,10 +227,63 @@ def get_count_of_completed_prompts(bingo_game_id: int = None):
             promptCnt, = con.sql(f"SELECT COUNT(*) FROM user_bingo_progress WHERE bingo_id = {bingo_game_id}").fetchone()
         return promptCnt
 
-get_count_of_completed_prompts()
+@log_exceptions
+def check_win(user_to_check: int):
+    '''
+    Check if there is a winner for the current bingo game. This function is desgined to
+    be executed directly after a prompt update to user_bingo_progress
 
-def delete_bingo_prompt_for_user(bingo_game_id: int, user_id: int, prompt_index: int):
-    pass
+    Arg:
+        user_to_check: int - user id of the user to check
+
+    Returns:
+        (result boolean, id): tuple - (True, userId) if there is a winner (False, None) if nothing
+    '''
+    with duckdb.connect('app.db') as con:
+        currentGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
+        completedPrompts = get_completed_bingo_prompts_for_user(currentGameId, user_to_check)
+
+        """
+        check for winnings (THIS IS FOR A 3x3 GROUPING)
+        winning combos:
+            [0, 1, 2], [3, 4, 5], [6, 7, 8]
+            [0, 3, 6], [1, 4, 7], [2, 5, 8]
+            [0, 4, 8], [2, 4, 6]
+
+        Since subset is an expensive operation, I've opted to do a bit of preprocessing. 
+        We're going to bucket sort the winning combinations down so just by using the first
+        number of selected indexes, we can shrink maximum combinations from 8 to 3.
+        """
+        firstDigitWinners = {
+            0: [[0, 1, 2], [0, 3, 6], [0, 4, 8]],
+            1: [[0, 1, 2], [1, 4, 7]],
+            2: [[0, 1, 2], [2, 5, 8], [2, 4, 6]],
+            3: [[3, 4, 5], [0, 3, 6]],
+            4: [[3, 4, 5], [1, 4, 7], [0, 4, 8], [2, 4, 6]],
+            5: [[3, 4, 5], [2, 5, 8]],
+            6: [[6, 7, 8], [2, 4, 6]],
+            7: [[6, 7, 8], [1, 4, 7], [0, 4, 8]],
+            8: [[6, 7, 8], [2, 5, 8]]
+        }
+        # find potential winning combinations
+        firstNumber = completedPrompts[0]
+        possibleWinners = firstDigitWinners[firstNumber]
+        completed = set(completedPrompts)
+        # is the current set of indexes a subset of any winners?
+        isWinner = False
+        i = 0
+        while i < len(possibleWinners) and isWinner == False:
+            winner = possibleWinners[i]
+            # must have at least 3 digits selected and must be a subset of a victory state
+            if len(completed) >= 3 and set(winner).issubset(completed):
+                isWinner = True
+            i += 1
+
+        if isWinner:
+            return (True, user_to_check)
+        else:
+            return (False, None)
+
 
 '''
 Database calls for the `users` table
@@ -256,6 +361,12 @@ def setup_database(dbname = "app.db"):
                 completed_index INTEGER NOT NULL,
                 PRIMARY KEY (user_id, bingo_id, completed_index)
             )'''
+        )
+        con.sql('''CREATE TABLE IF NOT EXISTS user_wins (
+                user_id INTEGER,
+                bingo_id INTEGER,
+                PRIMARY KEY (user_id, bingo_id)
+                )'''
         )
         con.sql('''CREATE TABLE IF NOT EXISTS prompts (
                 bingo_game INTEGER,
