@@ -52,7 +52,8 @@ async def homepage(request: Request):
         "bingoId": currentGame[0],
         "completedPrompts": myCompletedPrompts,
         "isMyWin": isMyWin,
-        "winner": winner
+        "winner": winner,
+        "finished": currentGame[4].strftime("%Y-%m-%d %H:%M:%S") if currentGame[4] is not None else "None"
     })
 
 @router.get("/vote")
@@ -68,11 +69,14 @@ async def stats(request: Request):
     if (request.method == "POST"):
         # handle selection of indexes
         formData = await request.form()
-        selected = formData.get('username')
+        reqUser = formData.get('username')
         
     # get information about requested user
     reqInfo = get_user_info_by_username(reqUser)
     userId, username, profImgUrl, isAdmin, points, numGamesWon, createdAt = reqInfo
+
+    if profImgUrl is None:
+        profImgUrl = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
 
     return templates.TemplateResponse("stats.html", { 
         "request": request,

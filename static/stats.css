@@ -1,7 +1,45 @@
+#stats-core {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+    grid-template-rows: auto auto;
+    max-width: 69rem;
+}
+
+#stats-window, #bingo-stats-window {
+    padding: 1em;
+}
+
+#bingo-stats-window {
+    overflow-y: scroll;
+    height: 55vh;
+}
+
+#bingo-stats-window>.title-bar {
+    position: sticky;
+    top: 0;
+    background-color: white;
+}
+
+#all-games {
+    width: 100%;
+}
+
+/* #all-games>*>*>*>td {
+    background-color: red;
+} */
+
+#all-games>thead>tr>td {
+    border-bottom: 1px solid black;
+}
+
 #search-action {
     display: flex;
     flex-direction: row;
     gap: 1em;
     margin-top: 10px;
     margin-bottom: 1em;
+}
+
+#user-profile-photo {
+    width: 40%;
 }

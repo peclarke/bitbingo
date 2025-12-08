@@ -16,10 +16,19 @@ def handle_victor(user_id: int):
         # check if there is already a winner.
         count, = con.sql(f"SELECT COUNT(victor) FROM bingo WHERE completed = false AND victor IS NOT NULL").fetchone()
         if (count == 0):
+            # first time a winner has been found
             modify_mark_victor(user_id, bingoGameId, con)
+            set_finish_time_for_game()
         else:
             # gain 50 points for completing bingo, but not first
             assign_victory_points(user_id, bingoGameId, 50)
+
+def set_finish_time_for_game():
+    '''
+    Sets the time the bingo game finished, or was won
+    '''
+    with duckdb.connect('app.db') as con:
+        con.sql("UPDATE bingo SET finished_at = current_localtimestamp() WHERE completed = false")
 
 @log_exceptions
 def modify_mark_victor(user_id: int, bingoGameId: int, conn = None):
@@ -335,6 +344,40 @@ def remove_prompt(prompt_id: int):
     pass
 
 '''
+Minigames
+'''
+def increase_click(user_id: int, bingo_game: int, clicks: int):
+    '''
+    Increases the click by 1 per user/bingo game in the database
+    '''
+    with duckdb.connect("app.db") as con:
+        usrCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE id = {user_id}").fetchone()
+        bingoCnt, = con.sql(f"SELECT COUNT(*) FROM bingo WHERE id = {bingo_game}").fetchone()
+        if usrCnt == 0:
+            logger.error(f"User does not exist to increase click with. User ID: {user_id}")
+            return False
+        
+        if bingoCnt == 0:
+            logger.error(f"Bingo game doesn't exist. ID: {bingo_game}")
+            return False
+        
+        if not isinstance(clicks, int):
+            logger.error("Number of clicks is not an integer")
+            return False
+        
+        if clicks < 0:
+            logger.error(f"Number of clicks cannot be a negative number: {clicks}")
+            return False
+        
+        # check if the user has already got one
+        records, = con.sql(f"SELECT COUNT(*) FROM user_game_clicks WHERE user_id = {user_id} AND bingo_id = {bingo_game}").fetchone()
+        if records > 0:
+            con.sql(f"UPDATE user_game_clicks SET clicks = clicks + {clicks} WHERE user_id = {user_id} AND bingo_id = {bingo_game}")
+        else:
+            # create one from scratch
+            con.sql(f"INSERT INTO user_game_clicks (user_id, bingo_id, clicks) VALUES ({user_id}, {bingo_game}, {clicks})")
+
+'''
 Meta database calls
 '''
 def setup_database(dbname = "app.db"):
@@ -377,7 +420,7 @@ def setup_database(dbname = "app.db"):
         con.sql('''CREATE TABLE IF NOT EXISTS user_game_clicks (
                 user_id INTEGER,
                 bingo_id INTEGER,
-                clicks INTEGER,
+                clicks INTEGER DEFAULT 1,
                 PRIMARY KEY (user_id, bingo_id))
             ''')
         con.sql('''CREATE TABLE IF NOT EXISTS prompts (

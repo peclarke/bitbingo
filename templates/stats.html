@@ -31,25 +31,175 @@
         </a>
     </ul>
 
-    <div class="window" id="bingo-window" style="width:30rem">
-        <div class="title-bar">
-            <h1 class="title">Player Stats</h1>
-        </div>
-        This tool can help you find the stats you need about each player in the game
-        <form action="/stats" method="post">
-            <div id="search-action">
-                <select name="username">
-                    {% for user in usernames %}
-                        <option>{{user}}</option>
-                    {% endfor %}
-                </select>
-                <button class="btn" type="submit">Search</button>
+    <section id="stats-core">
+        <div class="window" id="stats-window" style="width:30rem">
+            <div class="title-bar">
+                <h1 class="title">Player Stats</h1>
             </div>
-        </form>
-        <div class="separator"></div>
-        <p>Number of Games Won: <strong>{{numGamesWon}}</strong></p>
-        <p>Number of Points: <strong>{{points}}</strong></p>
-        <p>Joined On: <strong>{{createdAt}}</strong></p>
-    </div>
+            This tool can help you find the stats you need about each player in the game
+            <form action="/stats" method="post">
+                <div id="search-action">
+                    <select name="username">
+                        {% for user in usernames %}
+                            <option>{{user}}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn" type="submit">Search</button>
+                </div>
+            </form>
+            <div class="separator"></div>
+            <p>Number of Games Won: <strong>{{numGamesWon}}</strong></p>
+            <p>Number of Points: <strong>{{points}}</strong></p>
+            <p>Joined On: <strong>{{createdAt}}</strong></p>
+            <sub><i>Profile Picture</i></sub>
+            <br>
+            <img src="{{profImgUrl}}" id="user-profile-photo">
+        </div>
+
+        <div class="window" id="bingo-stats-window" style="width:60rem">
+            <div class="title-bar">
+                <h1 class="title">Bingo Stats</h1>
+            </div>
+            <table id="all-games">
+                <thead>
+                    <tr>
+                        <td><i>GameID</i></td>
+                        <td><i>Winner</i></td>
+                        <td><i>Started</i></td>
+                        <td><i>Finished</i></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                                        <tr>
+                        <td>1</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>peclarke</td>
+                        <td>05/12/25</td>
+                        <td>08/12/25</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 </body>
 </html>
