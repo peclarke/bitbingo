@@ -10,43 +10,42 @@
 </head>
 <body>
 
-    <ul role="menu-bar" class="menu">
-        <a role="menu-item" tabindex="0" href="/">
-            Home
-        </a>
-        <li role="menu-item" tabindex="0" aria-haspopup="true">
-            Profile
-            <ul role="menu">
-            <li role="menu-item"><a href="#menu">Action</a></li>
-            <li role="menu-item"><a href="#menu">Another Action</a></li>
-            <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
-            <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
-            </ul>
-        </li>
-        <a role="menu-item" tabindex="0" href="/stats">
-            Stats
-        </a>
-        <a role="menu-item" tabindex="0" href="/vote">
-            Vote
-        </a>
-        {% if amIAdmin %}
-        <a role="menu-item" tabindex="0" href="/admin" class="menu-toggled">
-            Admin
-        </a>
-        {% endif %}
-    </ul>
+    <div id="menu-nav">
+        <ul role="menu-bar" class="menu">
+            <a role="menu-item" tabindex="0" href="/">
+                Home
+            </a>
+            <li role="menu-item" tabindex="0" aria-haspopup="true">
+                Profile
+                <ul role="menu">
+                <li role="menu-item"><a href="#menu">Action</a></li>
+                <li role="menu-item"><a href="#menu">Another Action</a></li>
+                <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
+                <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
+                </ul>
+            </li>
+            <a role="menu-item" tabindex="0" href="/stats">
+                Stats
+            </a>
+            <a role="menu-item" tabindex="0" aria-haspopup="true" href="/leaderboard">
+                Leaderboard
+            </a>
+            <a role="menu-item" tabindex="0" href="/vote">
+                Vote
+            </a>
+        </ul>
+        <ul role="menu-bar" class="menu">
+            <a role="menu-item" tabindex="0" href="/admin" class="menu-toggled">
+                Admin
+            </a>
+        </ul>
+    </div>
 
     <div class="title-bar">
         <h1 class="title" id="result"></h1>
     </div>
 
     <div class="window admin-window" style="width:30rem">
-        <!-- <div class="title-bar">
-            <button aria-label="Close" class="close" onclick="clickButton()"></button>
-            <h1 class="title">BitBingo</h1>
-            <button aria-label="Resize" disabled class="hidden"></button>
-        </div> -->
-
         <div class="horizontal-inputs">
             <button class="btn" onclick="startNewGame()">Start New Game</button>
             <button class="btn">Reset Current Game</button>

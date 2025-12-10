@@ -1,3 +1,5 @@
+{% from 'macros/nav.html' import nav %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,31 +11,7 @@
 </head>
 <body>
 
-    <ul role="menu-bar" class="menu">
-        <a role="menu-item" tabindex="0" href="/" class="menu-toggled">
-            Home
-        </a>
-        <li role="menu-item" tabindex="0" aria-haspopup="true">
-            Profile
-            <ul role="menu">
-            <li role="menu-item"><a href="#menu">Action</a></li>
-            <li role="menu-item"><a href="#menu">Another Action</a></li>
-            <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
-            <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
-            </ul>
-        </li>
-        <a role="menu-item" tabindex="0" href="/stats">
-            Stats
-        </a>
-        <a role="menu-item" tabindex="0" href="/vote">
-            Vote
-        </a>
-        {% if amIAdmin %}
-        <a role="menu-item" tabindex="0" href="/admin">
-            Admin
-        </a>
-        {% endif %}
-    </ul>
+    {{ nav('home') }}
 
     <section id="bingo-core-game">
         <div class="window" id="bingo-window" style="width:30rem">

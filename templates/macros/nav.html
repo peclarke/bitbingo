@@ -1,0 +1,54 @@
+{% macro nav(name) %}
+<div id="menu-nav">
+    <ul role="menu-bar" class="menu">
+        {% if name == 'home' %}
+        <a role="menu-item" tabindex="0" href="/" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/">
+        {% endif %}
+            Home
+        </a>
+        <li role="menu-item" tabindex="0" aria-haspopup="true">
+            Profile
+            <ul role="menu">
+            <li role="menu-item"><a href="#menu">Action</a></li>
+            <li role="menu-item"><a href="#menu">Another Action</a></li>
+            <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
+            <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
+            </ul>
+        </li>
+        {% if name == 'stats' %}
+        <a role="menu-item" tabindex="0" href="/stats" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/stats">
+        {% endif %}
+            Stats
+        </a>
+        {% if name == 'leaderboard' %}
+        <a role="menu-item" tabindex="0" href="/leaderboard" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/leaderboard">
+        {% endif %}
+            Leaderboard
+        </a>
+        {% if name == 'vote' %}
+        <a role="menu-item" tabindex="0" href="/vote" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/vote">
+        {% endif %}
+            Vote
+        </a>
+    </ul>
+    <ul role="menu-bar" class="menu">
+        {% if amIAdmin %}
+        {% if name == 'admin' %}
+        <a role="menu-item" tabindex="0" href="/admin" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/admin">
+        {% endif %}
+            Admin
+        </a>
+        {% endif %}
+    </ul>
+</div>
+{% endmacro %}

@@ -3,7 +3,7 @@ import duckdb
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
-from database import get_all_bingo_games, get_all_current_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_game_winner, get_user_info_by_username, get_username_by_id, handle_victor, is_user_admin, set_completed_prompts_for_user
+from database import get_all_bingo_games, get_all_current_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
 from models import Bingo, User
 from utils import get_db
 
@@ -58,7 +58,7 @@ async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(ge
         "bingoId": currentGame.id,
         "completedPrompts": myCompletedPrompts,
         "isMyWin": isMyWin,
-        "winner": get_username_by_id(currentGame.victor) if currentGame.victor is not None else None,
+        "winner": get_username_by_id(con, currentGame.victor) if currentGame.victor is not None else None,
         "amIAdmin": amIAdmin
     })
 
@@ -86,6 +86,12 @@ async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
         profImgUrl = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
 
     allBingoGames: List[Bingo] = get_all_bingo_games(con)
+    # convert all the victor IDs to usernames
+    for i in range(len(allBingoGames)):
+        victor = allBingoGames[i].victor 
+        if victor is not None:
+            username = get_username_by_id(con, victor)
+            allBingoGames[i].victor = username
 
     return templates.TemplateResponse("stats.html", { 
         "request": request,
@@ -101,4 +107,15 @@ def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
     return templates.TemplateResponse("admin.html", { 
         "request": request,
         "amIAdmin": amIAdmin
+    })
+
+@router.get("/leaderboard")
+def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+    userPointLdb: List[User] = get_leaderboard_users(con)
+    userGamesWnLdb: List[User] = get_leaderboard_users(con, "number_games_won")
+
+    return templates.TemplateResponse("leaderboard.html", { 
+        "request": request,
+        "points": userPointLdb,
+        "gamesWon": userGamesWnLdb
     })

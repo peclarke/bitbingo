@@ -1,3 +1,9 @@
+#menu-nav {
+    /* background-color: red; */
+    display: flex;
+    justify-content: space-between;
+}
+
 #bingo-core-game {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));

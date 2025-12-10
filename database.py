@@ -316,16 +316,15 @@ def get_user_info_by_username(con: duckdb.DuckDBPyConnection, username: str):
     return None
 
 @log_exceptions
-def get_username_by_id(user_id: int):
+def get_username_by_id(con: duckdb.DuckDBPyConnection, user_id: int):
     '''
     Gets all the information associated with the user given the user's ID
 
     Args:
         user_id: int - the user id to query
     '''
-    with duckdb.connect('app.db') as con:
-        username, = con.sql(f"SELECT username FROM users WHERE id = {user_id}").fetchone()
-        return username
+    username, = con.sql(f"SELECT username FROM users WHERE id = {user_id}").fetchone()
+    return username
 
 @log_exceptions
 def get_all_usernames(con: duckdb.DuckDBPyConnection):
@@ -338,6 +337,41 @@ def get_all_usernames(con: duckdb.DuckDBPyConnection):
     res = con.sql(f"SELECT username FROM users").fetchall()
     usernames = [name[0] for name in res]
     return usernames
+
+@log_exceptions
+def get_all_users(con: duckdb.DuckDBPyConnection):
+    '''
+    Returns all users
+    '''
+    res = con.sql(f"SELECT * FROM users").fetchall()
+    users: List[User] = []
+    for u in res:
+        user = User.from_list(u)
+        users.append(user)
+    return users
+
+def get_leaderboard_users(con: duckdb.DuckDBPyConnection, method = 'points'):
+    '''
+    Gets abridged users in order of points
+
+    Args:
+        method: either 'points' or 'number_games_won'. 
+            number_games_won sorts in terms of most games won.
+            Points sorts in terms of most points. Defaults to this.
+
+    Returns:
+        A list of users with id, username, and that method in descending order
+    '''
+    results = con.sql(f"SELECT * FROM users ORDER BY {method} DESC").fetchall()
+    users: List[User] = multiple_users_to_multiple_models(results)
+    return users
+    
+def multiple_users_to_multiple_models(results):
+    users: List[User] = []
+    for u in results:
+        user = User.from_list(u)
+        users.append(user)
+    return users
     
 @log_exceptions
 def is_user_admin(con: duckdb.DuckDBPyConnection, user_id: int):
