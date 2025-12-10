@@ -8,13 +8,10 @@
         {% endif %}
             Home
         </a>
-        <li role="menu-item" tabindex="0" aria-haspopup="true">
+        <li role="menu-item" tabindex="0" aria-haspopup="true" aria-disabled="true">
             Profile
-            <ul role="menu">
-            <li role="menu-item"><a href="#menu">Action</a></li>
-            <li role="menu-item"><a href="#menu">Another Action</a></li>
-            <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
-            <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
+            <ul role="menu" aria-disabled="true">
+                <li role="menu-item"><a href="#">Nothing here yet</a></li>
             </ul>
         </li>
         {% if name == 'stats' %}
