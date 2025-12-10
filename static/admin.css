@@ -1,0 +1,15 @@
+.horizontal-inputs {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: 1em;
+    height: 100%;
+    width: 100%;
+}
+.horizontal-inputs>input {
+    height: 100%;
+}
+
+.admin-window {
+    padding: 1em;
+}

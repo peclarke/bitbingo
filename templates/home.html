@@ -28,6 +28,11 @@
         <a role="menu-item" tabindex="0" href="/vote">
             Vote
         </a>
+        {% if amIAdmin %}
+        <a role="menu-item" tabindex="0" href="/admin">
+            Admin
+        </a>
+        {% endif %}
     </ul>
 
     <section id="bingo-core-game">
@@ -71,10 +76,14 @@
             <div class="title-bar">
                 <h1 class="title">Current Game Stats</h1>
             </div>
-            <p>Game duration: <strong id="duration">72 hours, 32 minutes, 23 seconds</strong></p>
-            <p>Number of Prompts Completed (You): <strong>0</strong></p>
+            {% if finished == "None" %}
+                <p>Game Duration: <strong id="duration">72 hours, 32 minutes, 23 seconds</strong></p>
+            {% else %}
+                <p>Final Game Time: <strong id="duration">72 hours, 32 minutes, 23 seconds</strong></p>
+            {% endif %}
+            <p>Number of Prompts Completed (You): <strong>{{completedPrompts|length}}</strong></p>
             <p>Number of Prompts Completed (Team): <strong>{{teamComplete}}</strong></p>
-            <p>Winner: <strong>{{victor}}</strong></p>
+            <p>Winner: <strong>{{winner}}</strong></p>
             <p hidden="true" id="clicker">Number of Clicks: <strong>0</strong></p>
             <br>
         </div>
@@ -85,17 +94,42 @@
 <script>
     var initial = {{completedPrompts}}
     var selectedIndexes = {{completedPrompts}}
-    var numberOfClicks = 0
+    var numberOfClicksBatched = 0
+
+    let numClicks = 0;
+
     const startingTime = new Date("{{started}}");
 
     function init() {
         isClickerHidden()
         handleTimeDifference()
 
-        const numClicks = localStorage.getItem("click-game-"+"{{bingoId}}");
-        if (numClicks !== null) {
-            numberOfClicks = parseInt(numClicks);
+        // get number of clicks from storage
+        const numLSClicks = localStorage.getItem("click-game-"+"{{bingoId}}");
+        if (numLSClicks !== null) {
+            numClicks = parseInt(numLSClicks);
         }
+
+        // sendClicksToBeBatched()
+
+    }
+
+    function sendClicksToBeBatched() {
+        // no clicks, don't worry about it
+        if (numberOfClicksBatched > 0) {
+            const options = {
+                method: 'POST',
+                body: JSON.stringify({'clicks': numberOfClicksBatched, 'user_id': 1})
+            }            
+            fetch("/api/clicks", options)
+                .then(res => res.json())
+                .then(res => {
+                    // reset number of clicks that are batched
+                    numberOfClicksBatched = 0;
+                })
+        }
+
+        setTimeout(sendClicksToBeBatched, 3000)
     }
 
     function isSubmitEnabled() {
@@ -108,7 +142,7 @@
     }
 
     function isClickerHidden() {
-        if (numberOfClicks > 0) {
+        if (numberOfClicksBatched > 0) {
             document.getElementById("clicker").hidden = false
         } else {
             document.getElementById("clicker").hidden = true
@@ -116,7 +150,12 @@
     }
 
     function handleTimeDifference() {
-        const currentTime = new Date();
+        let currentTime;
+        {% if finished == "None" %}
+            currentTime = new Date();
+        {% else %}
+            currentTime = new Date("{{finished}}");
+        {% endif %}
         const msDiff = Math.abs(currentTime - startingTime);
 
         const diffSeconds = Math.floor(msDiff / 1000);
@@ -136,9 +175,10 @@
     }
 
     function clickButton() {
-        numberOfClicks = numberOfClicks + 1;
-        document.getElementById("clicker").lastChild.innerText = numberOfClicks
-        localStorage.setItem("click-game-"+"{{bingoId}}", numberOfClicks)
+        numClicks = numClicks + 1;
+        numberOfClicksBatched = numberOfClicksBatched + 1;
+        document.getElementById("clicker").lastChild.innerText = numClicks
+        localStorage.setItem("click-game-"+"{{bingoId}}", numClicks)
 
         isClickerHidden();
     }

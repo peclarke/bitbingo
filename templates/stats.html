@@ -40,25 +40,31 @@
             <form action="/stats" method="post">
                 <div id="search-action">
                     <select name="username">
-                        {% for user in usernames %}
-                            <option>{{user}}</option>
+                        {% for txtUser in usernames %}
+                            {% if user.username == txtUser %}
+                                <option selected>{{txtUser}}</option>
+                            {% else %}
+                                <option>{{txtUser}}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                     <button class="btn" type="submit">Search</button>
                 </div>
             </form>
             <div class="separator"></div>
-            <p>Number of Games Won: <strong>{{numGamesWon}}</strong></p>
-            <p>Number of Points: <strong>{{points}}</strong></p>
-            <p>Joined On: <strong>{{createdAt}}</strong></p>
+            <p>ID: <strong>{{user.id}}</strong></p>
+            <p>Username: <strong>{{user.username}}</strong></p>
+            <p>Number of Games Won: <strong>{{user.number_games_won}}</strong></p>
+            <p>Number of Points: <strong>{{user.points}}</strong></p>
+            <p>Joined On: <strong>{{user.created_at.strftime("%d/%m/%Y")}}</strong></p>
             <sub><i>Profile Picture</i></sub>
             <br>
             <img src="{{profImgUrl}}" id="user-profile-photo">
         </div>
 
-        <div class="window" id="bingo-stats-window" style="width:60rem">
+        <div class="window" id="bingo-stats-window" style="width:50rem">
             <div class="title-bar">
-                <h1 class="title">Bingo Stats</h1>
+                <h1 class="title">Bingo History</h1>
             </div>
             <table id="all-games">
                 <thead>
@@ -67,136 +73,19 @@
                         <td><i>Winner</i></td>
                         <td><i>Started</i></td>
                         <td><i>Finished</i></td>
+                        <td><i>Action Items</i></td>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for game in bingoGames %}
                     <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
+                        <td>{{game.id}}</td>
+                        <td>{{game.victor}}</td>
+                        <td>{{game.created_at.strftime("%d/%m/%Y %H:%M")}}</td>
+                        <td>{{game.finished_at.strftime("%d/%m/%Y %H:%M")}}</td>
+                        <td><button class="btn">More Info</input></td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                                        <tr>
-                        <td>1</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>peclarke</td>
-                        <td>05/12/25</td>
-                        <td>08/12/25</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
