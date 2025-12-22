@@ -5,7 +5,7 @@ from database import setup_database
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 from log import logger
-from routers import core, functions
+from routers import auth, core, functions
 
 def configure_logger():
     # i.e. make it info or debug level
@@ -16,6 +16,7 @@ def start_web_server():
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.include_router(functions.router)
     app.include_router(core.router)
+    app.include_router(auth.router)
     return app
 
 def init():

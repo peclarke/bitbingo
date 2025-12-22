@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BitBingo</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="https://unpkg.com/@sakun/system.css" />
+    <link href="{{ url_for('static', path='home.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='root.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='mainauth.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div id="main-auth" class="window" style="width:30rem;text-align: center;">
+        <div class="title-bar">
+            <h1 class="title">Welcome to BitBingo</h1>
+        </div>
+        <sub>A retro style, customisable bingo game made by Paul Clarke for all your bingo needs. Time to play, login below!</sub>
+        <form method="post" action="/authme">
+            <div class="auth-sec">
+                <input type="text" name="username" placeholder="your first name" required>
+                <input type="password" name="password" placeholder="your password" required>
+                <button class="btn" type="submit">Login</button>
+                <small>*Admins make all the accounts, you can't register here</small>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

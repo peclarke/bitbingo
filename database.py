@@ -525,6 +525,7 @@ def setup_database(dbname = 'app.db'):
                 created_at DATETIME DEFAULT current_localtimestamp()
             )'''
         )
+        con.sql('''CREATE TABLE IF NOT EXISTS auth (username VARCHAR UNIQUE NOT NULL, hashpsw VARCHAR NOT NULL)''')
         con.sql('CREATE SEQUENCE IF NOT EXISTS bingo_increment START 1')
         con.sql('''CREATE TABLE IF NOT EXISTS bingo (
                 id INTEGER PRIMARY KEY DEFAULT nextval('bingo_increment'),

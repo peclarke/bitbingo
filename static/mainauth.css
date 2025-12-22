@@ -1,0 +1,18 @@
+#main-auth {
+    /* page position */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20vh;
+    /* styling */
+    padding: 1em;
+
+}
+
+.auth-sec {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 1em;
+    margin-left: 10%;
+    margin-right: 10%;
+}
