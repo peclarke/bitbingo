@@ -8,6 +8,13 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
     grid-template-rows: auto auto;
+}
+
+.core-16 {
+    max-width: 85rem;
+}
+
+.core-9 {
     max-width: 69rem;
 }
 
@@ -18,10 +25,18 @@
 #bingo-table {
     /* margin-top: 1vh; */
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
     column-gap: 2px;
     row-gap: 2px;
+}
+
+.three-by-three {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.four-by-four {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
 }
 
 #bingo-table>div {
@@ -35,9 +50,6 @@
 }
 
 #bingo-table>div:hover {
-    /* background: var(--secondary);
-    color: var(--primary);
-    outline: none; */
     text-decoration: underline;
 }
 

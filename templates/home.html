@@ -13,18 +13,27 @@
 
     {{ nav('home') }}
 
-    <section id="bingo-core-game">
+        {% if prompts|length == 16 %}
+    <section id="bingo-core-game" class="core-16">
+        <div class="window" id="bingo-window" style="width:40rem">
+        {% else %}
+    <section id="bingo-core-game" class="core-9">
         <div class="window" id="bingo-window" style="width:30rem">
+        {% endif %}
             <div class="title-bar">
                 <button aria-label="Close" class="close" onclick="clickButton()"></button>
                 <h1 class="title">BitBingo</h1>
                 <button aria-label="Resize" disabled class="hidden"></button>
             </div>
-            <sub>Bingo for the week of {{ week }}. Will you be the winner?</sub>
+            <sub>Bingo starting on {{ week }}. Will you be the winner?</sub>
 
             <div class="separator"></div>
 
-            <div id="bingo-table">
+            {% if prompts|length == 16 %}
+            <div id="bingo-table" class="four-by-four">
+            {% else %}
+            <div id="bingo-table" class="three-by-three">
+            {% endif %}
                 {% for prompt in prompts %}
                     {% if prompt[0] in completedPrompts %}
                         <div class="checked-prompt" id="prompt-{{prompt[0]}}" onclick="onCardClick({{prompt[0]}})">{{prompt[1]}}</div>
@@ -47,7 +56,7 @@
             a few months, and more will be added as time passes.
             <br><br>
             To play, select prompts you've achieved for the week and above and submit them. You can do it all at once or one at a time.
-            Once a team member reaches BINGO! (3 across any direction) they will be marked the victor. The game resets each week, have fun! 
+            Once a team member reaches BINGO! (3/4 across any direction) they will be marked the victor. The game resets each week, have fun! 
             <br><br>
             <div class="separator"></div>
             <br>

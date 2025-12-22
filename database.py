@@ -1,3 +1,4 @@
+import random
 from typing import List
 import duckdb
 
@@ -102,15 +103,20 @@ def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8, u
         logger.error(f"Bingo game with id [{bingo_game_id}] does not exist")
         return
     
+    # get size of grid
+    n = get_n_for_game(con)
+    numberOfPrompts = (n*n)-1
+    
     # generate prompts
-    query = f"SELECT * FROM prompts_static USING SAMPLE {number}"
+    query = f"SELECT * FROM prompts_static USING SAMPLE {numberOfPrompts}"
     if (use_json):
-        query = f"SELECT * FROM read_json('static/prompts.json') USING SAMPLE {number}"
+        query = f"SELECT * FROM read_json('static/prompts.json') USING SAMPLE {numberOfPrompts}"
 
     results = con.sql(query).fetchall()
     prompts = list(map(lambda prompt: prompt[0], results))
     # insert free prompt
-    prompts.insert(4, "FREE")
+    freeIndex = 4 if n == 3 else random.randint(0,15)
+    prompts.insert(freeIndex, "FREE")
 
     # insert prompts into database
     for i, prompt in enumerate(prompts):
@@ -245,6 +251,11 @@ def get_count_of_completed_prompts(con: duckdb.DuckDBPyConnection, bingo_game_id
     return promptCnt
 
 @log_exceptions
+def get_n_for_game(con: duckdb.DuckDBPyConnection):
+    n, = con.sql("SELECT n FROM config").fetchone()
+    return n
+
+@log_exceptions
 def check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
     '''
     Check if there is a winner for the current bingo game. This function is desgined to
@@ -258,12 +269,14 @@ def check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
     '''
     # Precompute for speed (toggle n=3 or n=4)
     WIN_MASKS_3 = _win_masks_for_n(3)
-    # WIN_MASKS_4 = _win_masks_for_n(4) we don't use 4x4 yet
+    WIN_MASKS_4 = _win_masks_for_n(4)
+
+    n = get_n_for_game(con)
 
     currentGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
     completed = get_completed_bingo_prompts_for_user(con, currentGameId, user_to_check)
 
-    limit = 9 # 3 x 3 grid (n x n)
+    limit = n * n # (n x n) grid
     mask = 0
     for i in completed:
         if 0 <= i < limit:
@@ -271,7 +284,7 @@ def check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
         else:
             raise ValueError(f"Index out of range: {i} (expected 0..{limit-1})")
 
-    win_masks = WIN_MASKS_3 # if n == 3 else WIN_MASKS_4
+    win_masks = WIN_MASKS_3 if n == 3 else WIN_MASKS_4
     result = any((mask & win) == win for win in win_masks)
     if result:
         return (result, user_to_check)
@@ -565,6 +578,12 @@ def setup_database(dbname = 'app.db'):
         con.sql('''CREATE TABLE IF NOT EXISTS prompts_static AS
                 SELECT * AS "prompts" FROM read_json_auto('static/prompts.json')''')
         
+        con.sql('''CREATE TABLE IF NOT EXISTS config (n INTEGER NOT NULL DEFAULT 3)''')
+        # create a config if one didn't exist before hand
+        configs, = con.sql('SELECT COUNT(*) FROM config').fetchone()
+        if configs == 0:
+            con.sql('INSERT INTO config DEFAULT VALUES')
+
         # ensure a bingo game now exists
         bingoGames, = con.sql('SELECT COUNT(*) FROM bingo').fetchone()
         if bingoGames == 0:

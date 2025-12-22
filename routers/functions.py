@@ -1,4 +1,6 @@
 import duckdb
+import json
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
@@ -29,3 +31,13 @@ async def newgame(_: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
 @router.post("/resetcurrent")
 async def resetgame(_: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
     pass
+
+
+@router.post("/gridsize")
+async def gridsize(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+    body = await request.body()
+    decode = body.decode('utf-8')
+    info = json.loads(decode)
+    n = info["n"]
+    # update the configuration
+    con.sql(f"UPDATE config SET n = {n}")

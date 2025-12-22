@@ -32,6 +32,21 @@
                     <input type="text" name="username" disabled placeholder="user to invite">
                 </div>
             </div>
+            <div class="window admin-window" style="width:30rem">
+                <span>Bingo Size</span><br>
+                <sub>New changes will be in play from next bingo game</sub><br>
+                <div class="field-row" style="margin-top:0.5rem">
+                    <input id="radio-3by3" type="radio" name="radio-grid" checked="true" onclick="changeGrid(3)">
+                    <label for="radio-3by3">3x3 Grid (8 prompts + 1 free)</label>
+                </div>
+                <div class="field-row">
+                    <input id="radio-4by4" type="radio" name="radio-grid" onclick="changeGrid(4)">
+                    <label for="radio-4by4">4x4 Grid (15 prompts + 1 free)</label>
+                </div>
+                <sub>If you change this field mid-game, it's highly recommended you start a new game. The win mechanism
+                    uses a different bitmap algorithm based on whether its 3x3 or 4x4
+                </sub>
+            </div>
         </section>
         <div class="window admin-window all-prompts" style="width:50rem">
             <span style="margin-bottom: 0.5em"><strong>All Prompts</strong></span>
@@ -52,6 +67,35 @@
 
 
     <script>
+        init()
+
+        function init() {
+            
+        }
+
+        function changeGrid(n) {
+            const options = {
+                method: 'POST',
+                body: JSON.stringify({"n": n})
+            }
+            fetch("/api/gridsize", options)
+                .then(res => {
+                    if (res.ok) {
+                        document.getElementById("result").innerText = "Bingo Size Changed To "+n.toString()+"x"+n.toString()
+                        // set the new choice on the front end
+                        if (n === 3) {
+                            document.getElementById("radio-3by3").setAttribute("checked", "true")
+                            document.getElementById("radio-4by4").setAttribute("checked", "false")
+                        } else {
+                            document.getElementById("radio-3by3").setAttribute("checked", "false")
+                            document.getElementById("radio-4by4").setAttribute("checked", "true")
+                        }
+                    }
+                })
+        
+        
+            }
+
         function startNewGame() {
             const options = {
                 method: 'POST',
