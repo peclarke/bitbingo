@@ -9,4 +9,5 @@
 .hoz-inputs {
     display: flex;
     gap: 1em;
+    justify-content: flex-start;
 }

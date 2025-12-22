@@ -1,6 +1,6 @@
-from typing import List
+from typing import Annotated, List
 import duckdb
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -10,6 +10,8 @@ from utils import get_db
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+
+DEFAULT_AVATAR_URL = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
 
 @router.get("/")
 @router.post("/")
@@ -138,15 +140,33 @@ def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
         "gamesWon": userGamesWnLdb
     })
 
-@router.get("/profile")
-def profile(req: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
-    # handle blank profile pictures
-    profImgUrl = user.prof_img_url
-    if profImgUrl is None:
-        profImgUrl = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
-
-    return templates.TemplateResponse("profile.html", {
+def get_profile_context(
+    req: Request,
+    user: User = Depends(get_current_user),
+):
+    return {
         "request": req,
         "user": user,
-        "profImgUrl": profImgUrl,
-    })
+        "profImgUrl": user.prof_img_url or DEFAULT_AVATAR_URL,
+    }
+
+@router.get("/profile")
+def profile(ctx: dict = Depends(get_profile_context)):
+    return templates.TemplateResponse("profile.html", ctx)
+
+@router.post("/updatepicture")
+def updatepicture(
+    pictureUrl: Annotated[str, Form()],
+    con: duckdb.DuckDBPyConnection = Depends(get_db),
+    ctx: dict = Depends(get_profile_context),
+):
+    if not pictureUrl:
+        ctx["alert"] = "No URL given"
+        return templates.TemplateResponse("profile.html", ctx)
+
+    con.sql(f"UPDATE users SET prof_img_url = '{pictureUrl}' WHERE username = '{ctx["user"].username}'")
+
+    ctx["profImgUrl"] = pictureUrl
+    ctx["alert"] = "Profile picture updated"
+    return templates.TemplateResponse("profile.html", ctx)
+    
