@@ -1,0 +1,12 @@
+#user-profile-photo {
+    height: 50%;
+}
+
+.prof-window {
+    padding: 1em;
+}
+
+.hoz-inputs {
+    display: flex;
+    gap: 1em;
+}

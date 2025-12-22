@@ -137,3 +137,16 @@ def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
         "points": userPointLdb,
         "gamesWon": userGamesWnLdb
     })
+
+@router.get("/profile")
+def profile(req: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
+    # handle blank profile pictures
+    profImgUrl = user.prof_img_url
+    if profImgUrl is None:
+        profImgUrl = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
+
+    return templates.TemplateResponse("profile.html", {
+        "request": req,
+        "user": user,
+        "profImgUrl": profImgUrl,
+    })

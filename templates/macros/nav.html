@@ -8,12 +8,13 @@
         {% endif %}
             Home
         </a>
-        <li role="menu-item" tabindex="0" aria-haspopup="true" aria-disabled="true">
+        {% if name == 'profile' %}
+        <a role="menu-item" tabindex="0" href="/profile" class="menu-toggled">
+        {% else %}
+        <a role="menu-item" tabindex="0" href="/profile">
+        {% endif %}
             Profile
-            <ul role="menu" aria-disabled="true">
-                <li role="menu-item"><a href="#">Nothing here yet</a></li>
-            </ul>
-        </li>
+        </a>
         {% if name == 'stats' %}
         <a role="menu-item" tabindex="0" href="/stats" class="menu-toggled">
         {% else %}
@@ -28,13 +29,6 @@
         {% endif %}
             Leaderboard
         </a>
-        <!-- {% if name == 'vote' %}
-        <a role="menu-item" tabindex="0" href="/vote" class="menu-toggled">
-        {% else %}
-        <a role="menu-item" tabindex="0" href="/vote">
-        {% endif %}
-            Vote
-        </a> -->
     </ul>
     <ul role="menu-bar" class="menu">
     {% if name == 'admin' %}
