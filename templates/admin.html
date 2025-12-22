@@ -45,18 +45,39 @@
         <h1 class="title" id="result"></h1>
     </div>
 
-    <div class="window admin-window" style="width:30rem">
-        <div class="horizontal-inputs">
-            <button class="btn" onclick="startNewGame()">Start New Game</button>
-            <button class="btn">Reset Current Game</button>
+    <div class="all-controls">
+        <section class="left-controls">
+            <div class="window admin-window" style="width:30rem">
+                <div class="horizontal-inputs">
+                    <button class="btn" onclick="startNewGame()">Start New Game</button>
+                    <button class="btn" disabled>Reset Current Game</button>
+                </div>
+            </div>
+            <div class="window admin-window" style="width:30rem">
+                <div class="horizontal-inputs">
+                    <button class="btn" disabled>Create User Invite</button>
+                    <input type="text" name="username" disabled placeholder="user to invite">
+                </div>
+            </div>
+        </section>
+        <div class="window admin-window all-prompts" style="width:50rem">
+            <span style="margin-bottom: 0.5em"><strong>All Prompts</strong></span>
+            <ul>
+            {% for prompt in prompts %}
+            <li><span><i>{{prompt}}</i></span></li>
+            {% endfor %}
+            </ul>
+            <form method="post" action="/admin">
+                <div class="add-prompt">
+                    <input type="text" name="prompt" placeholder="new prompt">
+                    <button class="btn">Add Prompt</button>
+                </div>
+            </form>
         </div>
     </div>
-    <div class="window admin-window" style="width:30rem">
-        <div class="horizontal-inputs">
-            <button class="btn">Create User Invite</button>
-            <input type="text" name="username" placeholder="user to invite">
-        </div>
-    </div>
+
+
+
     <script>
         function startNewGame() {
             const options = {

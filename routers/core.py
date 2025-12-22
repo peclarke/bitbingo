@@ -1,9 +1,10 @@
 from typing import List
 import duckdb
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from database import get_all_bingo_games, get_all_current_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
+from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
 from models import Bingo, User
 from utils import get_db
 
@@ -102,11 +103,28 @@ async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
     })
 
 @router.get("/admin")
-def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+@router.post("/admin")
+async def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
     amIAdmin = is_user_admin(con, 1)
+
+    if not amIAdmin:
+        return RedirectResponse(url="/")
+    
+    if (request.method == "POST"):
+        # handle selection of indexes
+        formData = await request.form()
+        reqPrompt = formData.get('prompt')
+        if len(reqPrompt) > 0:
+            # add it to the prompts
+            _isOk = create_prompt(con, reqPrompt)
+    
+    prompts = get_all_prompts(con)
+    parsedPrompts: List[str] = list(map(lambda prompt: prompt[0], prompts))
+
     return templates.TemplateResponse("admin.html", { 
         "request": request,
-        "amIAdmin": amIAdmin
+        "amIAdmin": amIAdmin,
+        "prompts": parsedPrompts
     })
 
 @router.get("/leaderboard")

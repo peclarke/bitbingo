@@ -28,24 +28,22 @@
         {% endif %}
             Leaderboard
         </a>
-        {% if name == 'vote' %}
+        <!-- {% if name == 'vote' %}
         <a role="menu-item" tabindex="0" href="/vote" class="menu-toggled">
         {% else %}
         <a role="menu-item" tabindex="0" href="/vote">
         {% endif %}
             Vote
-        </a>
+        </a> -->
     </ul>
     <ul role="menu-bar" class="menu">
-        {% if amIAdmin %}
-        {% if name == 'admin' %}
+    {% if name == 'admin' %}
         <a role="menu-item" tabindex="0" href="/admin" class="menu-toggled">
         {% else %}
         <a role="menu-item" tabindex="0" href="/admin">
-        {% endif %}
-            Admin
-        </a>
-        {% endif %}
+    {% endif %}
+        Admin
+    </a>
     </ul>
 </div>
 {% endmacro %}

@@ -13,3 +13,16 @@
 .admin-window {
     padding: 1em;
 }
+
+.all-controls {
+    display: flex;
+}
+
+.all-prompts {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-prompt {
+    margin-top: 1em;
+}

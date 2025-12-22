@@ -3,6 +3,7 @@ import duckdb
 
 from log import logger, log_exceptions
 from models import Bingo, User
+from utils import _win_masks_for_n
 
 '''
 Database calls for the `bingo` table
@@ -82,7 +83,7 @@ def get_game_winner():
         return victor
 
 @log_exceptions
-def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8):
+def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8, use_json = False):
     '''
     Generates prompts for the bingo game and inserts it into the database
 
@@ -102,7 +103,11 @@ def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8):
         return
     
     # generate prompts
-    results = con.sql(f"SELECT * FROM read_json('static/prompts.json') USING SAMPLE {number}").fetchall()
+    query = f"SELECT * FROM prompts_static USING SAMPLE {number}"
+    if (use_json):
+        query = f"SELECT * FROM read_json('static/prompts.json') USING SAMPLE {number}"
+
+    results = con.sql(query).fetchall()
     prompts = list(map(lambda prompt: prompt[0], results))
     # insert free prompt
     prompts.insert(4, "FREE")
@@ -251,6 +256,40 @@ def check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
     Returns:
         (result boolean, id): tuple - (True, userId) if there is a winner (False, None) if nothing
     '''
+    # Precompute for speed (toggle n=3 or n=4)
+    WIN_MASKS_3 = _win_masks_for_n(3)
+    # WIN_MASKS_4 = _win_masks_for_n(4) we don't use 4x4 yet
+
+    currentGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
+    completed = get_completed_bingo_prompts_for_user(con, currentGameId, user_to_check)
+
+    limit = 9 # 3 x 3 grid (n x n)
+    mask = 0
+    for i in completed:
+        if 0 <= i < limit:
+            mask |= 1 << i
+        else:
+            raise ValueError(f"Index out of range: {i} (expected 0..{limit-1})")
+
+    win_masks = WIN_MASKS_3 # if n == 3 else WIN_MASKS_4
+    result = any((mask & win) == win for win in win_masks)
+    if result:
+        return (result, user_to_check)
+    else:
+        return (False, None)
+
+@log_exceptions
+def old_check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
+    '''
+    Check if there is a winner for the current bingo game. This function is desgined to
+    be executed directly after a prompt update to user_bingo_progress
+
+    Arg:
+        user_to_check: int - user id of the user to check
+
+    Returns:
+        (result boolean, id): tuple - (True, userId) if there is a winner (False, None) if nothing
+    '''
     currentGameId, = con.sql("SELECT id FROM bingo WHERE completed = false").fetchone()
     completedPrompts = get_completed_bingo_prompts_for_user(con, currentGameId, user_to_check)
 
@@ -277,18 +316,24 @@ def check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
         8: [[6, 7, 8], [2, 5, 8]]
     }
     # find potential winning combinations
-    firstNumber = completedPrompts[0]
-    possibleWinners = firstDigitWinners[firstNumber]
     completed = set(completedPrompts)
-    # is the current set of indexes a subset of any winners?
-    isWinner = False
-    i = 0
-    while i < len(possibleWinners) and isWinner == False:
-        winner = possibleWinners[i]
-        # must have at least 3 digits selected and must be a subset of a victory state
-        if len(completed) >= 3 and set(winner).issubset(completed):
-            isWinner = True
-        i += 1
+
+    def checkNumber(possibleWinners):
+        # is the current set of indexes a subset of any winners?
+        isWinner = False
+        i = 0
+        while i < len(possibleWinners) and isWinner == False:
+            winner = possibleWinners[i]
+            # must have at least 3 digits selected and must be a subset of a victory state
+            if len(completed) >= 3 and set(winner).issubset(completed):
+                isWinner = True
+                return isWinner
+            i += 1
+        return isWinner
+
+    for number in completedPrompts:
+        possibleWinners = firstDigitWinners[number]
+        isWinner = checkNumber(possibleWinners)
 
     if isWinner:
         return (True, user_to_check)
@@ -384,8 +429,11 @@ def is_user_admin(con: duckdb.DuckDBPyConnection, user_id: int):
     Returns:
         isAdmin: bool - true if the user is admin, false if not
     '''
-    isAdmin, = con.sql(f"SELECT is_admin FROM users WHERE id = {user_id}").fetchone()
-    return isAdmin
+    res = con.sql(f"SELECT is_admin FROM users WHERE id = {user_id}").fetchone()
+    if res is not None:
+        return res[0]
+    else:
+        return False
 
 def create_new_user():
     pass
@@ -408,14 +456,18 @@ def get_all_current_prompts(con: duckdb.DuckDBPyConnection):
     
     return con.sql(f"SELECT idx, prompt FROM prompts WHERE bingo_game = {currentGameId}").fetchall()
 
-def get_all_prompts():
+def get_all_prompts(con: duckdb.DuckDBPyConnection):
     '''
     Get all the prompts that the application can use
     '''
-    pass
+    return con.sql("SELECT * FROM prompts_static").fetchall()
 
-def create_prompt(prompt: str):
-    pass
+def create_prompt(con: duckdb.DuckDBPyConnection, prompt: str):
+    if len(prompt) == 0:
+        return False
+    
+    con.sql(f"INSERT INTO prompts_static VALUES ('{prompt}')")
+    return True
 
 def remove_prompt(prompt_id: int):
     pass
@@ -509,6 +561,14 @@ def setup_database(dbname = 'app.db'):
                 PRIMARY KEY (bingo_game, idx)
             )'''
         )
+        con.sql('''CREATE TABLE IF NOT EXISTS prompts_static AS
+                SELECT * AS "prompts" FROM read_json_auto('static/prompts.json')''')
+        
+        # ensure a bingo game now exists
+        bingoGames, = con.sql('SELECT COUNT(*) FROM bingo').fetchone()
+        if bingoGames == 0:
+            create_new_bingo_game(con)
+
     except:
         logger.exception("An error occurred when setting up the database")
     finally:
