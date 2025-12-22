@@ -1,3 +1,5 @@
+{% from 'macros/nav.html' import nav %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,36 +12,7 @@
 </head>
 <body>
 
-    <div id="menu-nav">
-        <ul role="menu-bar" class="menu">
-            <a role="menu-item" tabindex="0" href="/">
-                Home
-            </a>
-            <li role="menu-item" tabindex="0" aria-haspopup="true">
-                Profile
-                <ul role="menu">
-                <li role="menu-item"><a href="#menu">Action</a></li>
-                <li role="menu-item"><a href="#menu">Another Action</a></li>
-                <li role="menu-item" class="divider"><a href="#menu">Something else here</a></li>
-                <li role="menu-item"><a href="https://twitter.com/sakofchit">sakun's twitter</a></li>
-                </ul>
-            </li>
-            <a role="menu-item" tabindex="0" href="/stats">
-                Stats
-            </a>
-            <a role="menu-item" tabindex="0" aria-haspopup="true" href="/leaderboard">
-                Leaderboard
-            </a>
-            <a role="menu-item" tabindex="0" href="/vote">
-                Vote
-            </a>
-        </ul>
-        <ul role="menu-bar" class="menu">
-            <a role="menu-item" tabindex="0" href="/admin" class="menu-toggled">
-                Admin
-            </a>
-        </ul>
-    </div>
+    {{ nav('admin') }}
 
     <div class="title-bar">
         <h1 class="title" id="result"></h1>

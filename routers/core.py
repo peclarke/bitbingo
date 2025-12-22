@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
-from models import Bingo, User
+from models import Bingo, User, get_current_user
 from utils import get_db
 
 router = APIRouter()
@@ -13,11 +13,11 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/")
 @router.post("/")
-async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
     isMyWin = False # only updates after you win after submitting a prompt change
 
     currentGame: Bingo = get_bingo_game(con)
-    myCompletedPrompts = get_completed_bingo_prompts_for_user(con, currentGame.id, 1)
+    myCompletedPrompts = get_completed_bingo_prompts_for_user(con, currentGame.id, user.id)
 
     if (request.method == "POST"):
         # handle selection of indexes
@@ -25,7 +25,7 @@ async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(ge
         selected = formData.get('selected')
         if selected is not None:
             if len(selected) == 0:
-                isMyWin = set_completed_prompts_for_user(con, currentGame.id, 1, [])
+                isMyWin = set_completed_prompts_for_user(con, currentGame.id, user.id, [])
                 # set to new completed prompts
                 myCompletedPrompts = []
             else:
@@ -33,7 +33,7 @@ async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(ge
                 indexesStr = selected.split(",")
                 indexes = [int(x) for x in indexesStr]
 
-                isMyWin = set_completed_prompts_for_user(con, currentGame.id, 1, indexes)
+                isMyWin = set_completed_prompts_for_user(con, currentGame.id, user.id, indexes)
                 # set to new completed prompts
                 myCompletedPrompts = indexes
 
@@ -47,7 +47,7 @@ async def homepage(request: Request, con: duckdb.DuckDBPyConnection = Depends(ge
     teamCompletedPrompts = get_count_of_completed_prompts(con)
 
     # TODO: come back to this with user auth
-    amIAdmin = is_user_admin(con, 1)
+    amIAdmin = is_user_admin(con, user.id)
 
     return templates.TemplateResponse("home.html", {
         "request": request,
@@ -69,7 +69,7 @@ async def vote(request: Request):
 
 @router.get("/stats")
 @router.post("/stats")
-async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
     usernames: List[str] = get_all_usernames(con)
     reqUser = usernames[0]
 
@@ -104,8 +104,8 @@ async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
 
 @router.get("/admin")
 @router.post("/admin")
-async def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
-    amIAdmin = is_user_admin(con, 1)
+async def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
+    amIAdmin = is_user_admin(con, user.id)
 
     if not amIAdmin:
         return RedirectResponse(url="/")
@@ -128,7 +128,7 @@ async def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
     })
 
 @router.get("/leaderboard")
-def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db)):
+def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
     userPointLdb: List[User] = get_leaderboard_users(con)
     userGamesWnLdb: List[User] = get_leaderboard_users(con, "number_games_won")
 

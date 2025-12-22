@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -15,29 +15,45 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/landing")
 @router.post("/landing")
-async def landing(request: Request):
+async def landing(request: Request, response: Response):
+    token = request.cookies.get("access_token")
+    if token is not None:
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse("noauth.html", { "request": request })
 
-@router.post("/authme")
+@router.post("/token")
 async def authme(
+    response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
+) -> Response:
     user = auth_this_user(form_data.username, form_data.password)
-    print(user)
 
     if not user:
-        # raise HTTPException(
-        #     status_code=status.HTTP_401_UNAUTHORIZED,
-        #     detail="Incorrect username or password",
-        #     headers={"WWW-Authenticate": "Bearer"},
-        # )
-        return RedirectResponse(url="/landing")
+        raise HTTPException(status_code=301, headers={"Location": "/landing", "WWW-Authenticate": "Bearer"}, detail="Incorrect username or password")
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    token = Token(access_token=access_token, token_type="bearer")
+
+    # Set the cookie in the response
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        key="access_token", 
+        value=token.access_token, 
+        httponly=True, 
+        secure=True, # Use Secure in production (HTTPS)
+        samesite="Strict" # Helps prevent CSRF
+    )
+
+    return response
+
+@router.get("/logout")
+async def logout(resp: Response):
+    resp = RedirectResponse(url="/landing", status_code=status.HTTP_302_FOUND)
+    resp.delete_cookie(key="access_token", path="/")
+    return resp
 
 @router.get("/users/me")
 async def test(request: Request, current_user: Annotated[User, Depends(get_current_user)]):

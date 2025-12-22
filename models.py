@@ -3,11 +3,13 @@ import duckdb
 import jwt
 
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Optional
+from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
+
+from log import logger
 
 SECRET_KEY = "efe2619e45edfdc1b1e14d5e0a6b68b98e010bcc77ff6188370ecd1f11664e37"
 ALGORITHM = "HS256"
@@ -76,9 +78,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(request: Request) -> User:
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        raise HTTPException(status_code=303, headers={"Location": "/landing"})
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -88,14 +95,25 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            logger.error("No username found, redirecting to landing")
+            raise HTTPException(status_code=303, headers={"Location": "/landing"})
+        
         token_data = TokenData(username=username)
     except jwt.InvalidTokenError:
-        raise credentials_exception
+        # raise credentials_exception
+        logger.error("Invalid token, redirecting to landing")
+        raise HTTPException(status_code=303, headers={"Location": "/landing"})
     
-    user = get_auth_user(username=token_data.username)
+    user = None
+    with duckdb.connect("app.db") as con:
+        res = con.sql(f"SELECT * FROM users WHERE username = '{token_data.username}'").fetchone()
+        if res is not None:
+            user = User.from_list(res)
+
     if user is None:
-        raise credentials_exception
+        # raise credentials_exception
+        logger.error("User is not logged in")
+        raise HTTPException(status_code=303, headers={"Location": "/landing"})
     return user
 
 # ----- other relevant bingo models -----
