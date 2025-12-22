@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+import jwt
 
-from models import ACCESS_TOKEN_EXPIRE_MINUTES, Token, User, auth_this_user, create_access_token, get_current_user, hash_this_password
+from models import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY, Token, User, auth_this_user, create_access_token, get_current_user, hash_this_password
 
 
 router = APIRouter()
@@ -18,7 +19,15 @@ templates = Jinja2Templates(directory="templates")
 async def landing(request: Request, response: Response):
     token = request.cookies.get("access_token")
     if token is not None:
-        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+        # test if its a valid token
+        r = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+        try:
+            jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except jwt.InvalidTokenError:
+            r = RedirectResponse(url="/landing", status_code=status.HTTP_303_SEE_OTHER)
+            r.delete_cookie("access_token")
+        return r
+    
     return templates.TemplateResponse("noauth.html", { "request": request })
 
 @router.post("/token")
