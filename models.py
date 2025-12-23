@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 from log import logger
+from utils import DB_PATH
 
 SECRET_KEY = "efe2619e45edfdc1b1e14d5e0a6b68b98e010bcc77ff6188370ecd1f11664e37"
 ALGORITHM = "HS256"
@@ -54,7 +55,7 @@ def get_auth_user(username: str):
     '''
     Returns the user or None
     '''
-    with duckdb.connect("app.db") as con:
+    with duckdb.connect(DB_PATH) as con:
         return con.sql(f"SELECT * FROM auth WHERE username = '{username}'").fetchone()
 
 def verify_password(password: str, hashed_password: str):
@@ -106,7 +107,7 @@ async def get_current_user(request: Request) -> User:
         raise HTTPException(status_code=303, headers={"Location": "/landing"})
     
     user = None
-    with duckdb.connect("app.db") as con:
+    with duckdb.connect(DB_PATH) as con:
         res = con.sql(f"SELECT * FROM users WHERE username = '{token_data.username}'").fetchone()
         if res is not None:
             user = User.from_list(res)

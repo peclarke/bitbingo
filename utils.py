@@ -1,11 +1,13 @@
 import duckdb
+import os
 
 from typing import Tuple
 from log import logger
 
+DB_PATH = os.getenv("DUCKDB_PATH", "app.db")
 
 async def get_db():
-    con = duckdb.connect("app.db")
+    con = duckdb.connect(DB_PATH)
     try:
         yield con
     except:

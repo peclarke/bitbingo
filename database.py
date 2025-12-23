@@ -4,7 +4,7 @@ import duckdb
 
 from log import logger, log_exceptions
 from models import Bingo, User
-from utils import _win_masks_for_n
+from utils import DB_PATH, _win_masks_for_n
 
 '''
 Database calls for the `bingo` table
@@ -42,7 +42,7 @@ def modify_mark_victor(user_id: int, bingoGameId: int = None, conn = None):
         conn: None or duckdb connection - a current connection to the db. Useful for chaining calls
     '''
     if (conn is None):
-        conn = duckdb.connect("app.db")
+        conn = duckdb.connect(DB_PATH)
 
     if bingoGameId is None:
         bingoGameId, = conn.sql(f'SELECT id FROM bingo WHERE completed = false').fetchone()
@@ -79,7 +79,7 @@ def get_game_winner():
     Returns:
         userId or None
     '''
-    with duckdb.connect("app.db") as con:
+    with duckdb.connect(DB_PATH) as con:
         victor, = con.sql("SELECT victor FROM bingo WHERE completed = false").fetchone()
         return victor
 
@@ -96,7 +96,7 @@ def generate_and_fill_prompts(bingo_game_id: int, con = None, number: int = 8, u
             -> this allows for a free square in the middle
     '''
     if (con is None):
-        con = duckdb.connect('app.db')
+        con = duckdb.connect(DB_PATH)
 
     bingoCnt, = con.sql(f"SELECT COUNT(*) FROM bingo WHERE id = {bingo_game_id}").fetchone()
     if bingoCnt == 0:
@@ -500,7 +500,7 @@ def increase_click(user_id: int, bingo_game: int, clicks: int):
     '''
     Increases the click by 1 per user/bingo game in the database
     '''
-    with duckdb.connect("app.db") as con:
+    with duckdb.connect(DB_PATH) as con:
         usrCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE id = {user_id}").fetchone()
         bingoCnt, = con.sql(f"SELECT COUNT(*) FROM bingo WHERE id = {bingo_game}").fetchone()
         if usrCnt == 0:
@@ -530,7 +530,7 @@ def increase_click(user_id: int, bingo_game: int, clicks: int):
 '''
 Meta database calls
 '''
-def setup_database(dbname = 'app.db'):
+def setup_database(dbname = DB_PATH):
     try:
         logger.info("Attempting connection and table check")
         con = duckdb.connect(database=dbname, read_only = False)
