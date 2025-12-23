@@ -25,8 +25,9 @@
     <div class="all-controls">
         <section class="left-controls">
             <div class="window admin-window" style="width:30rem">
-                <div class="horizontal-inputs">
-                    <button class="btn" onclick="startNewGame()">Start New Game</button>
+                <span>Essential Controls</span>
+                <div class="horizontal-inputs" style="margin-top:1em">
+                    <button class="btn btn-default" onclick="startNewGame()">Start New Game</button>
                     <button class="btn" disabled>Reset Current Game</button>
                 </div>
             </div>
@@ -96,7 +97,7 @@
             <form method="post" action="/admin">
                 <div class="add-prompt">
                     <input type="text" name="prompt" placeholder="new prompt">
-                    <button class="btn">Add Prompt</button>
+                    <button class="btn btn-default">Add Prompt</button>
                 </div>
             </form>
         </div>

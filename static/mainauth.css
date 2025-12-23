@@ -16,3 +16,7 @@
     margin-left: 10%;
     margin-right: 10%;
 }
+
+.auth-sec>input {
+    padding: 5px;
+}
