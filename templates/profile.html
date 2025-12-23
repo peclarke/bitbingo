@@ -13,7 +13,7 @@
 <body>
     {{ nav('profile') }}
 
-    {% if alert is defined %}
+    {% if alert is defined and alert != None %}
     <div class="title-bar">
         <h1 class="title" id="result">{{alert}}</h1>
     </div>
@@ -58,16 +58,52 @@
                 </div>
             </form>
         </div>
+        <section id="changeme-section">
+        <form method="post" action="/changeusername" name="changeusername">
+            <div class="window prof-window" style="width:30em;height:18h">
+                <h1 class="title">Change Username</h1>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <input onchange="checkUser()" id="newuserinput" type="text" name="newusername" placeholder="new username" required>
+                    <div class="field-row">
+                        <input onchange="checkUser()" id="confirm-checkbox-user" type="checkbox" name="chbx-user">
+                        <label for="confirm-checkbox-user">Confirm</label>
+                    </div>
+                    <button id="change-user" class="btn" type="submit" disabled>Change Username</button>
+                </div>
+            </div>
+        </form>
         <form method="post" action="/changepassword" name="changepassword">
             <div class="window prof-window" style="width:30em;height:18h">
                 <h1 class="title">Change Password</h1>
                 <div style="display:flex;flex-direction:column;gap:10px">
-                    <input type="password" name="current" placeholder="current password" required>
-                    <input type="password" name="new" placeholder="new password" required>
-                    <button class="btn" type="submit">Change Password</button>
+                    <input onchange="checkPassword()" id="p1" type="password" name="current" placeholder="current password" required>
+                    <input onchange="checkPassword()" id="p2" type="password" name="new" placeholder="new password" required>
+                    <button id="chng-psw" class="btn" type="submit" disabled>Change Password</button>
                 </div>
             </div>
         </form>
+        </section>
     </section>
+    <script>
+        function checkUser() {
+            newuser = document.getElementById("newuserinput").value
+            chbx = document.getElementById("confirm-checkbox-user").checked
+            if (newuser.length >= 4 && chbx) {
+                document.getElementById("change-user").removeAttribute("disabled")
+            } else {
+                document.getElementById("change-user").setAttribute("disabled", "true")
+            }
+        }
+
+        function checkPassword() {
+            p1 = document.getElementById("p1").value
+            p2 = document.getElementById("p2").value
+            if (p1.length >= 4 && p1 === p2) {
+                document.getElementById("chng-psw").removeAttribute("disabled")
+            } else {
+                document.getElementById("chng-psw").setAttribute("disabled", "true")
+            }
+        }
+    </script>
 </body>
 </html>

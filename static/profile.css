@@ -11,3 +11,8 @@
     gap: 1em;
     justify-content: flex-start;
 }
+
+#changeme-section {
+    display: flex;
+    flex-direction: column;
+}

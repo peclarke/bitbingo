@@ -78,7 +78,11 @@ async def logout(resp: Response):
     return resp
 
 @router.post("/changepassword")
-async def changepassword(req: Request, current: Annotated[str, Form()], new: Annotated[str, Form()], current_user: Annotated[User, Depends(get_current_user)], con: duckdb.DuckDBPyConnection = Depends(get_db)):
+async def changepassword(req: Request, 
+                         current: Annotated[str, Form()], 
+                         new: Annotated[str, Form()], 
+                         current_user: Annotated[User, Depends(get_current_user)], 
+                         con: duckdb.DuckDBPyConnection = Depends(get_db)):
     # handle blank profile pictures
     profImgUrl = current_user.prof_img_url
     if profImgUrl is None:
@@ -114,6 +118,41 @@ async def changepassword(req: Request, current: Annotated[str, Form()], new: Ann
         "alert": "Password changed successfully"
     })
 
-@router.get("/users/me")
-async def test(request: Request, current_user: Annotated[User, Depends(get_current_user)]):
-    return current_user
+@router.post("/changeusername")
+async def changeusername(req: Request, 
+                         newusername: Annotated[str, Form()], 
+                         current_user: Annotated[User, Depends(get_current_user)],
+                         con: duckdb.DuckDBPyConnection = Depends(get_db)):
+    # check the username doesn't already exist
+    usernameCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE username = '{newusername}'").fetchone()
+    if usernameCnt > 0:
+        raise HTTPException(status_code=303, 
+                            headers={
+                                "Location": "/profile", 
+                                "WWW-Authenticate": "Bearer", 
+                                "Set-Cookie": "alert=Username already exists; Path=/; Max-Age=5"
+                            }, 
+                            detail="Username already exists"
+                        )
+
+    # change both auth and user tables
+    con.sql(f"UPDATE users SET username = '{newusername}' WHERE username = '{current_user.username}'")
+    con.sql(f"UPDATE auth SET username = '{newusername}' WHERE username = '{current_user.username}'")
+    # create new access token for you
+    r = RedirectResponse(url="/profile", status_code=status.HTTP_303_SEE_OTHER)
+    r.delete_cookie("access_token")
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": newusername}, expires_delta=access_token_expires
+    )
+    token = Token(access_token=access_token, token_type="bearer")
+    r.set_cookie(
+        key="access_token", 
+        value=token.access_token, 
+        httponly=True, 
+        secure=True, # Use Secure in production (HTTPS)
+        samesite="Strict" # Helps prevent CSRF
+    )
+    r.set_cookie(key="alert", value="Username changed successfully")
+    return r

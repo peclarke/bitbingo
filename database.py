@@ -604,6 +604,12 @@ def setup_database(dbname = DB_PATH):
         if bingoGames == 0:
             create_new_bingo_game(con)
 
+        # ensure an admin user exists
+        adminUsers, = con.sql('SELECT COUNT(*) FROM users').fetchone()
+        if adminUsers == 0:
+            con.sql("INSERT INTO users (username, is_admin) VALUES ('admin', true);")
+            con.sql("INSERT INTO auth (username, hashpsw) VALUES ('admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918iamateapotshortandstout')")
+
     except:
         logger.exception("An error occurred when setting up the database")
     finally:

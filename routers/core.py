@@ -155,8 +155,12 @@ def get_profile_context(
     }
 
 @router.get("/profile")
-def profile(ctx: dict = Depends(get_profile_context)):
-    return templates.TemplateResponse("profile.html", ctx)
+def profile(req: Request, ctx: dict = Depends(get_profile_context)):
+    alert = req.cookies.get("alert")
+    ctx["alert"] = alert
+    r = templates.TemplateResponse("profile.html", ctx)
+    r.delete_cookie("alert")
+    return r
 
 @router.post("/updatepicture")
 def updatepicture(

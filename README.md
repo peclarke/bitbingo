@@ -38,3 +38,12 @@ BitBingo uses the following things under/around/and over the hood:
 
 #### Admin Page
 <img width="1246" height="742" alt="admin page" src="https://github.com/user-attachments/assets/871380f2-3d5d-465d-91c1-2fc715797f9d" />
+
+## Get Started
+To run a version of BitBingo locally, you'll need to follow these steps:
+1. Clone the repository to a folder of your choosing
+2. Create a virtual environment and install the requirements
+3. Create `static/prompts.json` from `static/prompts-example.json` with your chosen starting prompts. You may also do this in the app one by one
+4. Run the app initially: `python main.py`
+5. Login with username `admin` and password `admin`
+6. You can change your password from the Profile screen
