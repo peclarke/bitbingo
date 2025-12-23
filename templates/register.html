@@ -1,0 +1,42 @@
+{% from 'macros/nav.html' import nav %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BitBingo</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="https://unpkg.com/@sakun/system.css" />
+    <link href="{{ url_for('static', path='home.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='root.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', path='mainauth.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div id="main-auth" class="window" style="width:30rem;text-align: center;">
+        <div class="title-bar">
+            <h1 class="title">Welcome to BitBingo</h1>
+        </div>
+        <sub>Hey, <strong>{{username}}</strong> welcome to BitBingo. Start by setting your password below to activate your account</sub>
+        <form method="post" action="/activate" name="activateaccount">
+            <div class="auth-sec">
+                <input onchange="passwordCheck()" id="password" type="password" name="password" placeholder="your password" required>
+                <input onchange="passwordCheck()" id="confirm" type="password" name="confirm" placeholder="confirm your password" required>
+                <input type="hidden" name="tokenconfirm" value="{{token}}">
+                <button id="activateBtn" class="btn" type="submit" disabled>Activate My Account</button>
+                <small>Make sure your password is at least 5 characters. Other than, go your hardest</small>
+            </div>
+        </form>
+    </div>
+    <script>
+        function passwordCheck() {
+            psw = document.getElementById("password").value
+            cnf = document.getElementById("confirm").value
+            btn = document.getElementById("activateBtn")
+            if (psw === cnf && psw.length > 4) {
+                btn.removeAttribute("disabled")
+            } else {
+                btn.setAttribute("disabled", "true")
+            }
+        }
+    </script>
+</body>
+</html>

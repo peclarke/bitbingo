@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
-from models import Bingo, User, get_current_user
+from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_invites, get_all_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
+from models import Bingo, User, get_current_admin, get_current_user
 from utils import get_db
 
 router = APIRouter()
@@ -106,27 +106,31 @@ async def stats(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_d
 
 @router.get("/admin")
 @router.post("/admin")
-async def admin(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):
-    amIAdmin = is_user_admin(con, user.id)
-
-    if not amIAdmin:
-        return RedirectResponse(url="/")
+async def admin(request: Request, 
+                con: duckdb.DuckDBPyConnection = Depends(get_db), 
+                user: User = Depends(get_current_admin)):
     
     if (request.method == "POST"):
         # handle selection of indexes
         formData = await request.form()
         reqPrompt = formData.get('prompt')
-        if len(reqPrompt) > 0:
+        if reqPrompt is not None and len(reqPrompt) > 0:
             # add it to the prompts
             _isOk = create_prompt(con, reqPrompt)
     
     prompts = get_all_prompts(con)
     parsedPrompts: List[str] = list(map(lambda prompt: prompt[0], prompts))
 
+    # get all invites
+    invites = get_all_invites(con)
+    makeUrl = lambda token : "http://127.0.0.1:5000/join/" + token
+    parsedInvites: List[tuple] = list(map(lambda invite: (invite[1], makeUrl(invite[0]), invite[2].strftime("%Y-%m-%d %H:%M:%S"), invite[3]), invites))
+
     return templates.TemplateResponse("admin.html", { 
         "request": request,
-        "amIAdmin": amIAdmin,
-        "prompts": parsedPrompts
+        "amIAdmin": user.is_admin,
+        "prompts": parsedPrompts,
+        "invites": parsedInvites
     })
 
 @router.get("/leaderboard")

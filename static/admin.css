@@ -1,3 +1,32 @@
+#invite-table { 
+    margin-top: 1em;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+}
+
+#invite-table>thead>tr>* {
+    /* font-weight: bolder; */
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+#invite-table>tbody>tr>td:nth-child(1) {
+    width: 10px;
+    overflow-wrap: break-word;
+}
+
+#invite-table>tbody>tr>td:nth-child(2) {
+    padding: 1em;
+    max-width: 100px;
+    overflow-wrap:break-word;
+}
+
+#invite-table>tbody>tr>td:nth-child(3) {
+    width: 100px;
+    overflow-wrap: break-word;
+}
+
 .horizontal-inputs {
     display: flex;
     justify-content: space-evenly;
@@ -25,4 +54,8 @@
 
 .add-prompt {
     margin-top: 1em;
+}
+
+.strikeout>td {
+    text-decoration: line-through;
 }

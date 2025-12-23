@@ -1,11 +1,12 @@
 import hashlib
 import duckdb
+from fastapi.responses import RedirectResponse
 import jwt
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Annotated, Optional
 
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
@@ -114,7 +115,14 @@ async def get_current_user(request: Request) -> User:
         # raise credentials_exception
         logger.error("User is not logged in")
         raise HTTPException(status_code=303, headers={"Location": "/landing"})
+
     return user
+
+async def get_current_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_303_SEE_OTHER, headers={'Location': "/"})
+
+    return current_user
 
 # ----- other relevant bingo models -----
 

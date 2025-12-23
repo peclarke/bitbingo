@@ -15,7 +15,11 @@
     {{ nav('admin') }}
 
     <div class="title-bar">
+        {% if alert is defined %}
+        <h1 class="title" id="result">{{alert}}</h1>
+        {% else %}
         <h1 class="title" id="result"></h1>
+        {% endif %}
     </div>
 
     <div class="all-controls">
@@ -24,12 +28,6 @@
                 <div class="horizontal-inputs">
                     <button class="btn" onclick="startNewGame()">Start New Game</button>
                     <button class="btn" disabled>Reset Current Game</button>
-                </div>
-            </div>
-            <div class="window admin-window" style="width:30rem">
-                <div class="horizontal-inputs">
-                    <button class="btn" disabled>Create User Invite</button>
-                    <input type="text" name="username" disabled placeholder="user to invite">
                 </div>
             </div>
             <div class="window admin-window" style="width:30rem">
@@ -46,6 +44,46 @@
                 <sub>If you change this field mid-game, it's highly recommended you start a new game. The win mechanism
                     uses a different bitmap algorithm based on whether its 3x3 or 4x4
                 </sub>
+            </div>
+            <div class="window admin-window" style="width:30rem">
+                <form name="createuserinvite" method="post" action="/createinvite">
+                    <span>Invite a User to the Game</span><br><br>
+                    <div class="horizontal-inputs">
+                        <input style="padding:1rem;width:100%" type="text" name="username" placeholder="user to invite" required>
+                        <button class="btn">Create User Invite</button>
+                    </div>
+                </form>
+            </div>
+            <div class="window admin-window" style="width:30rem">
+                <form method="post" action="/clearallinvites" name="clearallinvites">
+                    <div class="display:flex;flex-direction:row">
+                        <span>Invites</span>
+                        <button type="submit" class="btn" name="clearallinvites">Clear All</button>
+                    </div>
+                </form>
+                <sub>The invites that have been generated</sub><br>
+                <table id="invite-table">
+                    <thead>
+                        <tr>
+                            <td>Username</td>
+                            <td>URL</td>
+                            <td>Expires</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invite in invites %}
+                        {% if invite[3] %}
+                        <tr class="strikeout">
+                        {% else %}
+                        <tr>
+                        {% endif %}
+                            <td>{{invite[0]}}</td>
+                            <td>{{invite[1]}}</td>
+                            <td>{{invite[2]}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </section>
         <div class="window admin-window all-prompts" style="width:50rem">

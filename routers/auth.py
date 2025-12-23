@@ -30,7 +30,11 @@ async def landing(request: Request, response: Response):
             r.delete_cookie("access_token")
         return r
     
-    return templates.TemplateResponse("noauth.html", { "request": request })
+    alert = request.cookies.get("alert")
+    response = templates.TemplateResponse("noauth.html", { "request": request, "alert": alert })
+    response.delete_cookie("alert")
+
+    return response
 
 @router.post("/token")
 async def authme(
@@ -40,7 +44,14 @@ async def authme(
     user = auth_this_user(form_data.username, form_data.password)
 
     if not user:
-        raise HTTPException(status_code=301, headers={"Location": "/landing", "WWW-Authenticate": "Bearer"}, detail="Incorrect username or password")
+        raise HTTPException(status_code=303, 
+                            headers={
+                                "Location": "/landing", 
+                                "WWW-Authenticate": "Bearer", 
+                                "Set-Cookie": "alert=Invalid username or password; Path=/; Max-Age=5"
+                            }, 
+                            detail="Incorrect username or password"
+                        )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

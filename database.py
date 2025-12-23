@@ -448,8 +448,10 @@ def is_user_admin(con: duckdb.DuckDBPyConnection, user_id: int):
     else:
         return False
 
-def create_new_user():
-    pass
+@log_exceptions
+def create_new_user(con: duckdb.DuckDBPyConnection, username: str):
+    con.sql(f"""INSERT INTO users (username) VALUES ('{username}');""")
+    return True
 
 '''
 Database calls for the `prompts` table
@@ -484,6 +486,12 @@ def create_prompt(con: duckdb.DuckDBPyConnection, prompt: str):
 
 def remove_prompt(prompt_id: int):
     pass
+
+'''
+Invites
+'''
+def get_all_invites(con: duckdb.DuckDBPyConnection):
+    return con.sql(f"SELECT * FROM invites").fetchall()
 
 '''
 Minigames
@@ -578,6 +586,13 @@ def setup_database(dbname = 'app.db'):
         con.sql('''CREATE TABLE IF NOT EXISTS prompts_static AS
                 SELECT * AS "prompts" FROM read_json_auto('static/prompts.json')''')
         
+        con.sql('''CREATE TABLE IF NOT EXISTS invites (
+                token VARCHAR NOT NULL UNIQUE, 
+                username VARCHAR NOT NULL,
+                expiresAt DATETIME DEFAULT current_localtimestamp() + INTERVAL 2 HOUR,
+                completed BOOLEAN NOT NULL DEFAULT false)
+                ''')
+
         con.sql('''CREATE TABLE IF NOT EXISTS config (n INTEGER NOT NULL DEFAULT 3)''')
         # create a config if one didn't exist before hand
         configs, = con.sql('SELECT COUNT(*) FROM config').fetchone()
