@@ -413,11 +413,10 @@ def delete_user(con: duckdb.DuckDBPyConnection, userId):
     try:
         print(f"DELETE FROM users WHERE id = {userId}")
         con.sql(f"DELETE FROM users WHERE id = {userId}")
-        # remove from auth if need be
-        username = get_username_by_id(con, userId)
-        info: User = get_user_info_by_username(username)
-        if info.is_activated:
-            con.sql(f"DELETE FROM auth WHERE username = {username}")
+
+        if userId is not None:
+            con.sql(f"DELETE FROM auth WHERE username IN (SELECT username FROM users WHERE id = {userId})")
+            
         return True
 
     except Exception as e:
