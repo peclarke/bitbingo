@@ -1,10 +1,9 @@
 from typing import Annotated, List
 import duckdb
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_invites, get_all_prompts, get_all_usernames, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
+from database import create_prompt, get_all_bingo_games, get_all_current_prompts, get_all_invites, get_all_prompts, get_all_usernames, get_all_users, get_bingo_game, get_completed_bingo_prompts_for_user, get_count_of_completed_prompts, get_leaderboard_users, get_user_info_by_username, get_username_by_id, is_user_admin, set_completed_prompts_for_user
 from models import Bingo, User, get_current_admin, get_current_user
 from utils import get_db
 
@@ -126,12 +125,27 @@ async def admin(request: Request,
     makeUrl = lambda token : "https://www.bitbingo.fun/join/" + token
     parsedInvites: List[tuple] = list(map(lambda invite: (invite[1], makeUrl(invite[0]), invite[2].strftime("%Y-%m-%d %H:%M:%S"), invite[3]), invites))
 
-    return templates.TemplateResponse("admin.html", { 
+    # get all users
+    usrs: List[User] = get_all_users(con)
+    parsedUsrs = list(map(lambda user: {
+        "id": user.id,
+        "username": user.username,
+        "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+        "is_admin": user.is_admin,
+        "is_activated": user.is_activated
+    }, usrs))
+
+    alert = request.cookies.get("alert")
+    resp = templates.TemplateResponse("admin.html", { 
         "request": request,
         "amIAdmin": user.is_admin,
         "prompts": parsedPrompts,
-        "invites": parsedInvites
+        "invites": parsedInvites,
+        "users": parsedUsrs,
+        "alert": alert
     })
+    resp.delete_cookie("alert")
+    return resp
 
 @router.get("/leaderboard")
 def leaderboard(request: Request, con: duckdb.DuckDBPyConnection = Depends(get_db), user: User = Depends(get_current_user)):

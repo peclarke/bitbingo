@@ -59,3 +59,14 @@
 .strikeout>td {
     text-decoration: line-through;
 }
+
+.usr-actions {
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+td:has(.usr-actions) {
+    width: 5px;
+    text-align: center;
+}

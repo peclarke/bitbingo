@@ -358,7 +358,7 @@ def old_check_win(con: duckdb.DuckDBPyConnection, user_to_check: int):
 Database calls for the `users` table
 '''
 @log_exceptions
-def get_user_info_by_username(con: duckdb.DuckDBPyConnection, username: str):
+def get_user_info_by_username(con: duckdb.DuckDBPyConnection, username: str) -> User | None:
     '''
     Gets all the information associated with the user given the user's username
 
@@ -407,6 +407,27 @@ def get_all_users(con: duckdb.DuckDBPyConnection):
         user = User.from_list(u)
         users.append(user)
     return users
+
+@log_exceptions
+def delete_user(con: duckdb.DuckDBPyConnection, userId):
+    try:
+        print(f"DELETE FROM users WHERE id = {userId}")
+        con.sql(f"DELETE FROM users WHERE id = {userId}")
+        # remove from auth if need be
+        username = get_username_by_id(con, userId)
+        info: User = get_user_info_by_username(username)
+        if info.is_activated:
+            con.sql(f"DELETE FROM auth WHERE username = {username}")
+        return True
+
+    except Exception as e:
+        logger.exception(e)
+    return False
+    
+@log_exceptions
+def adminify_user(con: duckdb.DuckDBPyConnection, userId):
+    con.sql(f"UPDATE users SET is_admin = true WHERE id = {userId}")
+    return True
 
 def get_leaderboard_users(con: duckdb.DuckDBPyConnection, method = 'points'):
     '''
@@ -551,7 +572,7 @@ def setup_database(dbname = DB_PATH):
         con.sql('''CREATE TABLE IF NOT EXISTS bingo (
                 id INTEGER PRIMARY KEY DEFAULT nextval('bingo_increment'),
                 completed BOOLEAN DEFAULT false,
-                victor INTEGER NULL REFERENCES users(id),
+                victor INTEGER NULL,
                 created_at DATETIME DEFAULT current_localtimestamp(),
                 finished_at DATETIME NULL DEFAULT NULL
             )'''
@@ -607,7 +628,7 @@ def setup_database(dbname = DB_PATH):
         # ensure an admin user exists
         adminUsers, = con.sql('SELECT COUNT(*) FROM users').fetchone()
         if adminUsers == 0:
-            con.sql("INSERT INTO users (username, is_admin) VALUES ('admin', true)")
+            con.sql("INSERT INTO users (username, is_admin, is_activated) VALUES ('admin', true, true)")
             con.sql("INSERT INTO auth (username, hashpsw) VALUES ('admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918iamateapotshortandstout')")
 
     except:

@@ -15,7 +15,7 @@
     {{ nav('admin') }}
 
     <div class="title-bar">
-        {% if alert is defined %}
+        {% if alert is defined and alert != None %}
         <h1 class="title" id="result">{{alert}}</h1>
         {% else %}
         <h1 class="title" id="result"></h1>
@@ -100,6 +100,47 @@
                     <button class="btn btn-default">Add Prompt</button>
                 </div>
             </form>
+        </div>
+        <div class="window admin-window" style="width:30rem">
+            <!-- <form method="post" action="/clearallinvites" name="clearallinvites"> -->
+                <div class="display:flex;flex-direction:row">
+                    <span>Players</span>
+                    <!-- <button type="submit" class="btn" name="clearallinvites">Clear All</button> -->
+                </div>
+            <!-- </form> -->
+            <sub>All active and deactivated players in the game</sub><br>
+            <table id="invite-table">
+                <thead>
+                    <tr>
+                        <td>ID</td>
+                        <td>Username</td>
+                        <td>Created</td>
+                        <td>Is Admin?</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    {% if not user.is_activated %}
+                    <tr class="strikeout">
+                    {% else %}
+                    <tr>
+                    {% endif %}
+                        <td>{{user.id}}</td>
+                        <td>{{user.username}}</td>
+                        <td>{{user.created_at}}</td>
+                        <td>{{user.is_admin}}</td>
+                        <form method="post" action="/deleteuser" name="deleteuser">
+                            <td><button type="submit" name="delete-user" class="btn usr-actions">Delete</button></td>
+                            <input type="hidden" value="{{user.id}}" name="userid">
+                        </form>
+                        <form method="post" action="/adminuser" name="adminuser">
+                            <td><button type="submit" class="btn usr-actions">Adminify</button></td>
+                            <input type="hidden" value="{{user.id}}" name="userid">
+                        </form>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 

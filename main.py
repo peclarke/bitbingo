@@ -5,7 +5,7 @@ from database import setup_database
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 from log import logger
-from routers import auth, core, functions, register
+from routers import adm, auth, core, functions, register
 
 def configure_logger():
     # i.e. make it info or debug level
@@ -27,10 +27,13 @@ async def lifespan(app: FastAPI):
 def start_web_server():
     app = FastAPI(lifespan=lifespan)
     app.mount("/static", StaticFiles(directory="static"), name="static")
+    # include all our routers
     app.include_router(functions.router)
     app.include_router(core.router)
     app.include_router(auth.router)
     app.include_router(register.router)
+    app.include_router(adm.router)
+
     return app
 
 app = start_web_server()
