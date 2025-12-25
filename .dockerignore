@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.venv/
+.env
+
+logs/*
+!logs/.keep
+
+app.db
+*.duckdb
+
+.git/
+.gitignore
+README.md

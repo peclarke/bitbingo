@@ -11,15 +11,6 @@ def configure_logger():
     # i.e. make it info or debug level
     pass
 
-def start_web_server():
-    app = FastAPI()
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    app.include_router(functions.router)
-    app.include_router(core.router)
-    app.include_router(auth.router)
-    app.include_router(register.router)
-    return app
-
 def init():
     configure_logger()
 
@@ -28,8 +19,21 @@ def init():
 
     logger.info("Starting server")
 
+async def lifespan(app: FastAPI):
+    # initialise the application
+    init()
+    yield
+
+def start_web_server():
+    app = FastAPI(lifespan=lifespan)
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.include_router(functions.router)
+    app.include_router(core.router)
+    app.include_router(auth.router)
+    app.include_router(register.router)
+    return app
+
 app = start_web_server()
 
 if __name__ == "__main__":
-    init()
     uvicorn.run("main:app", port=5000, log_level="debug")

@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - duckdb_data:/data
+    environment:
+      - DUCKDB_PATH=/data/app.db
+
+volumes:
+  duckdb_data:

@@ -1,13 +1,11 @@
 import hashlib
 import duckdb
-from fastapi.responses import RedirectResponse
 import jwt
 
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 from log import logger
@@ -79,8 +77,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 async def get_current_user(request: Request) -> User:
     token = request.cookies.get("access_token")

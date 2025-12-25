@@ -38,6 +38,7 @@ async def landing(request: Request, response: Response):
 
 @router.post("/token")
 async def authme(
+    request: Request,
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Response:
@@ -61,12 +62,13 @@ async def authme(
 
     # Set the cookie in the response
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    is_https = request.url.scheme == "https"
     response.set_cookie(
         key="access_token", 
         value=token.access_token, 
         httponly=True, 
-        secure=True, # Use Secure in production (HTTPS)
-        samesite="Strict" # Helps prevent CSRF
+        secure=is_https, # Use Secure in production (HTTPS)
+        samesite="lax" # Helps prevent CSRF
     )
 
     return response
@@ -147,12 +149,13 @@ async def changeusername(req: Request,
         data={"sub": newusername}, expires_delta=access_token_expires
     )
     token = Token(access_token=access_token, token_type="bearer")
+    is_https = req.url.scheme == "https"
     r.set_cookie(
         key="access_token", 
         value=token.access_token, 
         httponly=True, 
-        secure=True, # Use Secure in production (HTTPS)
-        samesite="Strict" # Helps prevent CSRF
+        secure=is_https, # Use Secure in production (HTTPS)
+        samesite="lax" # Helps prevent CSRF
     )
-    r.set_cookie(key="alert", value="Username changed successfully")
+    r.set_cookie(key="alert", value="Username changed successfully", secure=is_https, samesite="lax", httponly=True)
     return r
