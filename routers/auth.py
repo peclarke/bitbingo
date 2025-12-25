@@ -83,6 +83,7 @@ async def logout(resp: Response):
 async def changepassword(req: Request, 
                          current: Annotated[str, Form()], 
                          new: Annotated[str, Form()], 
+                         confirm: Annotated[str, Form()],
                          current_user: Annotated[User, Depends(get_current_user)], 
                          con: duckdb.DuckDBPyConnection = Depends(get_db)):
     # handle blank profile pictures
@@ -90,12 +91,12 @@ async def changepassword(req: Request,
     if profImgUrl is None:
         profImgUrl = "https://www.shutterstock.com/image-vector/blank-avatar-photo-placeholder-flat-600nw-1151124605.jpg"
         
-    if current is None or new is None:
+    if current is None or new is None or confirm is None:
         return templates.TemplateResponse("profile.html", {
             "request": req,
             "user": current_user,
             "profImgUrl": profImgUrl,
-            "alert": "Either current password or new password does not exist"
+            "alert": "Must provide old, new, and confirm password"
         })
     
     # ensure current password matches with old
@@ -107,6 +108,14 @@ async def changepassword(req: Request,
             "user": current_user,
             "profImgUrl": profImgUrl,
             "alert": "Current password does not match"
+        })
+    
+    if (confirm != new):
+        return templates.TemplateResponse("profile.html", {
+            "request": req,
+            "user": current_user,
+            "profImgUrl": profImgUrl,
+            "alert": "New password does not match confirmed password. How did you get here?"
         })
     
     # update the password

@@ -78,6 +78,7 @@
                 <div style="display:flex;flex-direction:column;gap:10px">
                     <input onchange="checkPassword()" id="p1" type="password" name="current" placeholder="current password" required>
                     <input onchange="checkPassword()" id="p2" type="password" name="new" placeholder="new password" required>
+                    <input onchange="checkPassword()" id="p3" type="password" name="confirm" placeholder="confirm password" required>
                     <button id="chng-psw" class="btn" type="submit" disabled>Change Password</button>
                 </div>
             </div>
@@ -98,7 +99,8 @@
         function checkPassword() {
             p1 = document.getElementById("p1").value
             p2 = document.getElementById("p2").value
-            if (p1.length >= 4 && p1 === p2) {
+            p3 = document.getElementById("p2").value
+            if (p2.length >= 4 && p2 === p3 && p1.length > 0) {
                 document.getElementById("chng-psw").removeAttribute("disabled")
             } else {
                 document.getElementById("chng-psw").setAttribute("disabled", "true")
