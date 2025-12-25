@@ -1,12 +1,33 @@
 services:
+  caddy:
+    image: caddy:2.11
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+    networks:
+      - web
+
   api:
     build: .
     ports:
-      - "8000:8000"
+      - 8000
     volumes:
       - duckdb_data:/data
     environment:
       - DUCKDB_PATH=/data/app.db
+    networks:
+      - web
 
 volumes:
   duckdb_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:
