@@ -153,6 +153,8 @@ def get_bingo_game(con: duckdb.DuckDBPyConnection, bingo_game_id: int = None):
     Returns:
         pydantic model of a Bingo game (current or specified)
     '''
+    # sanity check
+    con.sql("SET TimeZone='Australia/Brisbane';")
     game = None
     if bingo_game_id is None:
         game = con.sql("SELECT * FROM bingo WHERE completed = false").fetchone()

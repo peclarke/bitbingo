@@ -14,6 +14,7 @@ pydantic==2.12.5
 pydantic_core==2.41.5
 PyJWT==2.10.1
 python-multipart==0.0.20
+pytz==2025.2
 starlette==0.50.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
