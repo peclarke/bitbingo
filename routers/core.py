@@ -1,3 +1,4 @@
+import html
 from typing import Annotated, List
 import duckdb
 from fastapi import APIRouter, Depends, Form, Request
@@ -186,10 +187,11 @@ def updatepicture(
     if not pictureUrl:
         ctx["alert"] = "No URL given"
         return templates.TemplateResponse("profile.html", ctx)
+    
+    cleanUrl = html.escape(pictureUrl)
+    con.sql(f"UPDATE users SET prof_img_url = '{cleanUrl}' WHERE username = '{ctx["user"].username}'")
 
-    con.sql(f"UPDATE users SET prof_img_url = '{pictureUrl}' WHERE username = '{ctx["user"].username}'")
-
-    ctx["profImgUrl"] = pictureUrl
+    ctx["profImgUrl"] = cleanUrl
     ctx["alert"] = "Profile picture updated"
     return templates.TemplateResponse("profile.html", ctx)
     
