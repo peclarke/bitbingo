@@ -188,7 +188,7 @@ def updatepicture(
         ctx["alert"] = "No URL given"
         return templates.TemplateResponse("profile.html", ctx)
     
-    cleanUrl = html.escape(pictureUrl)
+    cleanUrl = html.escape(pictureUrl).strip()
     con.sql(f"UPDATE users SET prof_img_url = '{cleanUrl}' WHERE username = '{ctx["user"].username}'")
 
     ctx["profImgUrl"] = cleanUrl

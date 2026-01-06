@@ -144,7 +144,7 @@ async def changeusername(req: Request,
                          current_user: Annotated[User, Depends(get_current_user)],
                          con: duckdb.DuckDBPyConnection = Depends(get_db)):
     # check the username doesn't already exist
-    cleanUsername = html.escape(newusername)
+    cleanUsername = html.escape(newusername).strip()
     usernameCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE username = '{cleanUsername}'").fetchone()
     if usernameCnt > 0:
         raise HTTPException(status_code=303, 
