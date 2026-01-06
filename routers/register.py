@@ -73,6 +73,9 @@ async def activate(req: Request,
     if invitee is None:
         return RedirectResponse(url="/")
     
+    if len(password) > 64:
+        return RedirectResponse(url="/join/"+tokenconfirm)
+    
     hashedPassword = hash_this_password(password)
     con.sql(f"INSERT INTO auth (username, hashpsw) VALUES ('{invitee.username}', '{hashedPassword}')")
     # update the invite to be completed

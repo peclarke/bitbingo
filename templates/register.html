@@ -22,7 +22,7 @@
                 <input onchange="passwordCheck()" id="confirm" type="password" name="confirm" placeholder="confirm your password" required>
                 <input type="hidden" name="tokenconfirm" value="{{token}}">
                 <button id="activateBtn" class="btn" type="submit" disabled>Activate My Account</button>
-                <small>Make sure your password is at least 5 characters. Other than, go your hardest</small>
+                <small>Make sure your password is between [5,64] characters. Other than that, go your hardest</small>
             </div>
         </form>
     </div>
@@ -31,7 +31,7 @@
             psw = document.getElementById("password").value
             cnf = document.getElementById("confirm").value
             btn = document.getElementById("activateBtn")
-            if (psw === cnf && psw.length > 4) {
+            if (psw === cnf && psw.length > 4 && psw.length <= 64) {
                 btn.removeAttribute("disabled")
             } else {
                 btn.setAttribute("disabled", "true")

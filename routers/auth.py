@@ -99,6 +99,15 @@ async def changepassword(req: Request,
             "alert": "Must provide old, new, and confirm password"
         })
     
+    # ensure the password is not crazy
+    if len(new) > 64:
+        return templates.TemplateResponse("profile.html", {
+            "request": req,
+            "user": current_user,
+            "profImgUrl": profImgUrl,
+            "alert": "Password cannot be more than 64 characters long"
+        })
+    
     # ensure current password matches with old
     (_, hashpsw) = get_auth_user(current_user.username)
     matching = verify_password(current, hashpsw)
