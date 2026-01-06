@@ -155,6 +155,16 @@ async def changeusername(req: Request,
                             }, 
                             detail="Username already exists"
                         )
+    
+    if len(cleanUsername) > 64:
+        raise HTTPException(status_code=303, 
+                    headers={
+                        "Location": "/profile", 
+                        "WWW-Authenticate": "Bearer", 
+                        "Set-Cookie": "alert=Dude. Pick a smaller username; Path=/; Max-Age=5"
+                    }, 
+                    detail="Pick a smaller username"
+                )
 
     # change both auth and user tables
     con.sql(f"UPDATE users SET username = '{cleanUsername}' WHERE username = '{current_user.username}'")
