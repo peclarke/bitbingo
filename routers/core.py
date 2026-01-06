@@ -122,7 +122,8 @@ async def admin(request: Request,
 
     # get all invites
     invites = get_all_invites(con)
-    makeUrl = lambda token : "https://www.bitbingo.fun/join/" + token
+    baseUrl = request.base_url
+    makeUrl = lambda token : str(baseUrl) + "join/" + token
     parsedInvites: List[tuple] = list(map(lambda invite: (invite[1], makeUrl(invite[0]), invite[2].strftime("%Y-%m-%d %H:%M:%S"), invite[3]), invites))
 
     # get all users
