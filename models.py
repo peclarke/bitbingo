@@ -1,5 +1,6 @@
 import hashlib
 import duckdb
+import html
 import jwt
 
 from datetime import datetime, timedelta, timezone
@@ -43,7 +44,8 @@ class TokenData(CustomBaseModel):
 def hash_this_password(password: str):
     salt = "iamateapotshortandstout"
     # hash this
-    myHash = hashlib.sha256(password.encode('utf-8'))
+    playnice = html.escape(password)
+    myHash = hashlib.sha256(playnice.encode('utf-8'))
     hexDigest = myHash.hexdigest()
     # add the salt
     finalHash = hexDigest + salt
@@ -57,7 +59,7 @@ def get_auth_user(username: str):
         return con.sql(f"SELECT * FROM auth WHERE username = '{username}'").fetchone()
 
 def verify_password(password: str, hashed_password: str):
-    testingPsw = hash_this_password(password)
+    testingPsw = hash_this_password(html.escape(password))
     return hashed_password == testingPsw
 
 def auth_this_user(username: str, password: str):

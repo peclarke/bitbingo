@@ -1,13 +1,13 @@
-
+import duckdb
+import html
+import jwt
 
 from datetime import timedelta
 from typing import Annotated
-import duckdb
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-import jwt
 
 from models import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY, Token, User, auth_this_user, create_access_token, get_auth_user, get_current_user, hash_this_password, verify_password
 from utils import get_db
@@ -107,7 +107,7 @@ async def changepassword(req: Request,
             "profImgUrl": profImgUrl,
             "alert": "Password cannot be more than 64 characters long"
         })
-    
+
     # ensure current password matches with old
     (_, hashpsw) = get_auth_user(current_user.username)
     matching = verify_password(current, hashpsw)
@@ -144,7 +144,8 @@ async def changeusername(req: Request,
                          current_user: Annotated[User, Depends(get_current_user)],
                          con: duckdb.DuckDBPyConnection = Depends(get_db)):
     # check the username doesn't already exist
-    usernameCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE username = '{newusername}'").fetchone()
+    cleanUsername = html.escape(newusername)
+    usernameCnt, = con.sql(f"SELECT COUNT(*) FROM users WHERE username = '{cleanUsername}'").fetchone()
     if usernameCnt > 0:
         raise HTTPException(status_code=303, 
                             headers={
@@ -156,15 +157,15 @@ async def changeusername(req: Request,
                         )
 
     # change both auth and user tables
-    con.sql(f"UPDATE users SET username = '{newusername}' WHERE username = '{current_user.username}'")
-    con.sql(f"UPDATE auth SET username = '{newusername}' WHERE username = '{current_user.username}'")
+    con.sql(f"UPDATE users SET username = '{cleanUsername}' WHERE username = '{current_user.username}'")
+    con.sql(f"UPDATE auth SET username = '{cleanUsername}' WHERE username = '{current_user.username}'")
     # create new access token for you
     r = RedirectResponse(url="/profile", status_code=status.HTTP_303_SEE_OTHER)
     r.delete_cookie("access_token")
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": newusername}, expires_delta=access_token_expires
+        data={"sub": cleanUsername}, expires_delta=access_token_expires
     )
     token = Token(access_token=access_token, token_type="bearer")
     is_https = req.url.scheme == "https"
