@@ -100,12 +100,12 @@ async def changepassword(req: Request,
         })
     
     # ensure the password is not crazy
-    if len(new) > 64:
+    if len(new) > 64 or len(new) < 5:
         return templates.TemplateResponse("profile.html", {
             "request": req,
             "user": current_user,
             "profImgUrl": profImgUrl,
-            "alert": "Password cannot be more than 64 characters long"
+            "alert": "Password cannot be more than 64 characters long or less than 5"
         })
 
     # ensure current password matches with old
@@ -156,14 +156,14 @@ async def changeusername(req: Request,
                             detail="Username already exists"
                         )
     
-    if len(cleanUsername) > 64:
+    if len(cleanUsername) > 64 or len(cleanUsername) < 5:
         raise HTTPException(status_code=303, 
                     headers={
                         "Location": "/profile", 
                         "WWW-Authenticate": "Bearer", 
-                        "Set-Cookie": "alert=Dude. Pick a smaller username; Path=/; Max-Age=5"
+                        "Set-Cookie": "alert=Dude. Pick a better username; Path=/; Max-Age=5"
                     }, 
-                    detail="Pick a smaller username"
+                    detail="Pick a better username"
                 )
 
     # change both auth and user tables
